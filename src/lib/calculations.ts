@@ -1,5 +1,3 @@
-import { Transaction, Category, Subcategory, InvestmentEnvelope } from '@prisma/client';
-
 export interface BudgetSummary {
   totalIncome: number;
   totalExpense: number;
@@ -9,7 +7,7 @@ export interface BudgetSummary {
   globalSavingsRate: number; // (Income - Expense) / Income
 }
 
-export function calculateBudgetSummary(transactions: Transaction[]): BudgetSummary {
+export function calculateBudgetSummary(transactions: any[]): BudgetSummary {
   const incomes = transactions.filter((t) => t.type === 'INCOME');
   const expenses = transactions.filter((t) => t.type === 'EXPENSE');
   const investments = transactions.filter((t) => t.type === 'INVESTMENT');
@@ -50,11 +48,7 @@ export interface SankeyData {
   links: SankeyLink[];
 }
 
-type TransactionWithRelations = Transaction & {
-  category?: Category | null;
-  subcategory?: Subcategory | null;
-  investmentEnvelope?: InvestmentEnvelope | null;
-};
+type TransactionWithRelations = any;
 
 export function buildSankeyData(transactions: TransactionWithRelations[]): SankeyData {
   const nodes: SankeyNode[] = [];
