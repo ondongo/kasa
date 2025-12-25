@@ -44,7 +44,7 @@ export async function GET(req: Request) {
 
     // Générer CSV
     const csvHeader = 'Type,Mois,Libellé,Montant,Propriétaire,Catégorie,Sous-catégorie,Enveloppe\n';
-    const csvRows = transactions.map((t) => {
+    const csvRows = transactions.map((t: any) => {
       const amount = centsToEuros(t.amount);
       const category = t.category?.name || '';
       const subcategory = t.subcategory?.name || '';

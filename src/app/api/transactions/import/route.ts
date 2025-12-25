@@ -43,8 +43,8 @@ export async function POST(req: Request) {
       prisma.investmentEnvelope.findMany({ where: { householdId: household.id } }),
     ]);
 
-    const categoriesByName = new Map(categories.map((c) => [c.name.toLowerCase(), c]));
-    const envelopesByName = new Map(envelopes.map((e) => [e.name.toLowerCase(), e]));
+    const categoriesByName = new Map(categories.map((c: any) => [c.name.toLowerCase(), c]));
+    const envelopesByName = new Map(envelopes.map((e: any) => [e.name.toLowerCase(), e]));
 
     for (let i = 0; i < parsed.data.length; i++) {
       const row: any = parsed.data[i];
