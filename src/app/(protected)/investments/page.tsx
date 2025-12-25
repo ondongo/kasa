@@ -11,6 +11,7 @@ import { getTransactions } from '@/lib/actions/transactions';
 import { getEnvelopes } from '@/lib/actions/envelopes';
 import { calculateBudgetSummary, getCurrentMonth } from '@/lib/calculations';
 import { Plus } from 'lucide-react';
+import type { Transaction } from '@prisma/client';
 
 export default function InvestmentsPage() {
   const [month, setMonth] = useState(getCurrentMonth());
@@ -33,7 +34,7 @@ export default function InvestmentsPage() {
         getEnvelopes(),
       ]);
 
-      const investments = allTransactions.filter((t) => t.type === 'INVESTMENT');
+      const investments = allTransactions.filter((t: Transaction) => t.type === 'INVESTMENT');
       setTransactions(investments);
       setEnvelopes(investmentEnvelopes);
 
