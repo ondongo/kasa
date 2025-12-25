@@ -274,7 +274,7 @@ export async function getPartner() {
 
   const household = user.memberships[0].household;
   const partner = household.memberships.find(
-    (m) => m.userId !== user.id
+    (m: any) => m.userId !== user.id
   )?.user;
 
   return partner || null;
