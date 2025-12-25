@@ -11,7 +11,6 @@ import { getTransactions } from '@/lib/actions/transactions';
 import { getCategories } from '@/lib/actions/categories';
 import { calculateBudgetSummary, getCurrentMonth } from '@/lib/calculations';
 import { Plus } from 'lucide-react';
-import type { Transaction } from '@prisma/client';
 
 export default function IncomesPage() {
   const [month, setMonth] = useState(getCurrentMonth());
@@ -34,7 +33,7 @@ export default function IncomesPage() {
         getCategories('INCOME'),
       ]);
 
-      const incomes = allTransactions.filter((t: Transaction) => t.type === 'INCOME');
+      const incomes = allTransactions.filter((t: any) => t.type === 'INCOME');
       setTransactions(incomes);
       setCategories(incomeCategories);
 

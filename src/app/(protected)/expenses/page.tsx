@@ -11,7 +11,6 @@ import { getTransactions } from '@/lib/actions/transactions';
 import { getCategories } from '@/lib/actions/categories';
 import { calculateBudgetSummary, getCurrentMonth } from '@/lib/calculations';
 import { Plus } from 'lucide-react';
-import type { Transaction } from '@prisma/client';
 
 export default function ExpensesPage() {
   const [month, setMonth] = useState(getCurrentMonth());
@@ -34,7 +33,7 @@ export default function ExpensesPage() {
         getCategories('EXPENSE'),
       ]);
 
-      const expenses = allTransactions.filter((t: Transaction) => t.type === 'EXPENSE');
+      const expenses = allTransactions.filter((t: any) => t.type === 'EXPENSE');
       setTransactions(expenses);
       setCategories(expenseCategories);
 
