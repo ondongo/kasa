@@ -1,0 +1,292 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ========== MODELS ==========
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String?
+  firstName      String?
+  lastName       String?
+  phoneNumber    String?
+  password       String?
+  emailVerified  DateTime?
+  phoneVerified  DateTime?
+  image          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  accounts             Account[]
+  sessions             Session[]
+  memberships          Membership[]
+  preferences          UserPreferences?
+  trustedDevices       TrustedDevice[]
+  sentInvitations      CoupleInvitation[] @relation("InvitationSender")
+  receivedInvitations  CoupleInvitation[] @relation("InvitationReceiver")
+
+  @@map("users")
+}
+
+model UserPreferences {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  currency  String   @default("EUR") // EUR, USD, XAF, etc.
+  language  String   @default("fr")  // fr, en, ln, wo, etc.
+  theme     String   @default("dark") // light, dark, system
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model TrustedDevice {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  deviceType  String   // mobile, tablet, laptop
+  userAgent   String   @db.Text
+  ipAddress   String?
+  location    String?
+  lastUsedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("trusted_devices")
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+model CoupleInvitation {
+  id         String           @id @default(cuid())
+  senderId   String
+  receiverEmail String
+  receiverId String?
+  status     InvitationStatus @default(PENDING)
+  token      String           @unique
+  expiresAt  DateTime
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  sender   User  @relation("InvitationSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User? @relation("InvitationReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@map("couple_invitations")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+enum Role {
+  OWNER
+  MEMBER
+}
+
+model Household {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships         Membership[]
+  transactions        Transaction[]
+  categories          Category[]
+  investmentEnvelopes InvestmentEnvelope[]
+  recurringTemplates  RecurringTemplate[]
+
+  @@map("households")
+}
+
+model Membership {
+  id           String   @id @default(cuid())
+  userId       String
+  householdId  String
+  role         Role     @default(MEMBER)
+  partnerName  String? // "ME" or "PARTNER" display name
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, householdId])
+  @@map("memberships")
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  INVESTMENT
+}
+
+enum Owner {
+  ME
+  PARTNER
+  SHARED
+}
+
+enum RecurringFrequency {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+model Transaction {
+  id          String          @id @default(cuid())
+  householdId String
+  type        TransactionType
+  month       String // Format: "YYYY-MM"
+  label       String
+  amount      Int // En centimes
+  owner       Owner           @default(SHARED)
+
+  categoryId           String?
+  subcategoryId        String?
+  investmentEnvelopeId String?
+
+  isRecurring      Boolean             @default(false)
+  recurringRule    RecurringFrequency?
+  startMonth       String? // Format: "YYYY-MM"
+  endMonth         String? // Format: "YYYY-MM"
+  recurringTemplateId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  household           Household           @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  category            Category?           @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  subcategory         Subcategory?        @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
+  investmentEnvelope  InvestmentEnvelope? @relation(fields: [investmentEnvelopeId], references: [id], onDelete: SetNull)
+  recurringTemplate   RecurringTemplate?  @relation(fields: [recurringTemplateId], references: [id], onDelete: SetNull)
+
+  @@index([householdId, month])
+  @@index([householdId, type])
+  @@map("transactions")
+}
+
+model Category {
+  id          String          @id @default(cuid())
+  householdId String
+  name        String
+  type        TransactionType // EXPENSE ou INCOME
+  color       String? // Hex color
+  order       Int             @default(0)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  household      Household      @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  subcategories  Subcategory[]
+  transactions   Transaction[]
+
+  @@unique([householdId, name, type])
+  @@map("categories")
+}
+
+model Subcategory {
+  id         String   @id @default(cuid())
+  categoryId String
+  name       String
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  category     Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@unique([categoryId, name])
+  @@map("subcategories")
+}
+
+model InvestmentEnvelope {
+  id          String   @id @default(cuid())
+  householdId String
+  name        String
+  color       String? // Hex color
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  household    Household     @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@unique([householdId, name])
+  @@map("investment_envelopes")
+}
+
+model RecurringTemplate {
+  id          String              @id @default(cuid())
+  householdId String
+  type        TransactionType
+  label       String
+  amount      Int // En centimes
+  owner       Owner               @default(SHARED)
+
+  categoryId           String?
+  subcategoryId        String?
+  investmentEnvelopeId String?
+
+  frequency  RecurringFrequency
+  startMonth String // Format: "YYYY-MM"
+  endMonth   String? // Format: "YYYY-MM"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  household      Household       @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  transactions   Transaction[]
+
+  @@index([householdId])
+  @@map("recurring_templates")
+}
