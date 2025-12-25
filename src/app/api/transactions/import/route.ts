@@ -80,13 +80,13 @@ export async function POST(req: Request) {
         let investmentEnvelopeId = null;
 
         if (row.Catégorie) {
-          const cat = categoriesByName.get(row.Catégorie.toLowerCase());
+          const cat: any = categoriesByName.get(row.Catégorie.toLowerCase());
           if (cat) {
             categoryId = cat.id;
 
             // Chercher la sous-catégorie
             if (row['Sous-catégorie']) {
-              const subcat = await prisma.subcategory.findFirst({
+              const subcat: any = await prisma.subcategory.findFirst({
                 where: {
                   categoryId: cat.id,
                   name: {
@@ -101,7 +101,7 @@ export async function POST(req: Request) {
         }
 
         if (row.Enveloppe) {
-          const env = envelopesByName.get(row.Enveloppe.toLowerCase());
+          const env: any = envelopesByName.get(row.Enveloppe.toLowerCase());
           if (env) investmentEnvelopeId = env.id;
         }
 
