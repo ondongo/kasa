@@ -7,47 +7,6 @@ Application web moderne de gestion de budget pour couples, inspirée de Finary. 
 ![Prisma](https://img.shields.io/badge/Prisma-7.0-2D3748)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-38B2AC)
 
-## Fonctionnalités
-
-### Gestion complète du budget
-- **Revenus** : Salaires, revenus complémentaires, aides, avantages
-- **Dépenses** : Catégorisées par type (logement, vie quotidienne, transport, etc.)
-- **Investissements** : Répartition par enveloppes (actions, livrets, comptes épargne)
-
-### Visualisations
-- **Dashboard** avec indicateurs clés :
-  - Taux d'épargne
-  - Revenus totaux
-  - Dépenses totales
-  - Reste à vivre
-- **Diagramme Sankey** interactif pour visualiser les flux financiers
-
-### Mode Couple
-- Gestion à deux utilisateurs
-- Attribution des transactions : Moi / Partenaire / Commun
-- Vue consolidée du budget du foyer
-
-### Historique
-- Navigation par mois (précédent/suivant)
-- Visualisation mensuelle des données
-- Comparaison entre périodes
-
-### Récurrences
-- Gestion des transactions récurrentes (loyer, abonnements, virements)
-- Fréquences : mensuelle, trimestrielle, annuelle
-- Génération automatique
-
-### Import/Export
-- Export CSV des transactions
-- Import CSV avec validation
-- Rapport d'erreurs détaillé
-
-### Interface
-- Design minimaliste et sobre
-- Dark mode par défaut
-- Interface responsive
-- Components shadcn/ui
-
 ## Installation
 
 ### Prérequis
