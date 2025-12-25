@@ -27,14 +27,12 @@ export default function LoginPage() {
       const result = await signIn('credentials', {
         email,
         password,
-        redirect: false,
+        callbackUrl: '/dashboard',
+        redirect: true,
       });
 
       if (result?.error) {
         setError('Identifiants invalides');
-      } else {
-        router.push('/dashboard');
-        router.refresh();
       }
     } catch (err) {
       setError('Une erreur est survenue');
@@ -66,14 +64,12 @@ export default function LoginPage() {
       const result = await signIn('credentials', {
         email,
         password,
-        redirect: false,
+        callbackUrl: '/dashboard',
+        redirect: true,
       });
 
       if (result?.error) {
         setError('Compte créé, mais erreur de connexion. Veuillez vous connecter manuellement.');
-      } else {
-        router.push('/dashboard');
-        router.refresh();
       }
     } catch (err) {
       setError('Une erreur est survenue');
