@@ -1,22 +1,26 @@
-import { withAuth } from 'next-auth/middleware';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
-export default withAuth(
-  function middleware(req) {
-    // Middleware qui s'exécute après vérification de l'auth
-    return;
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => {
-        // L'utilisateur est autorisé s'il a un token JWT
-        return !!token;
-      },
-    },
-    pages: {
-      signIn: '/login',
-    },
+export async function middleware(req: NextRequest) {
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+    cookieName:
+      process.env.NODE_ENV === "production"
+        ? "__Secure-next-auth.session-token"
+        : "next-auth.session-token",
+  });
+
+  // Si l'utilisateur n'est pas authentifié et essaie d'accéder à une route protégée
+  if (!token) {
+    const url = new URL('/login', req.url);
+    return NextResponse.redirect(url);
   }
-);
+
+  // L'utilisateur est authentifié, on le laisse passer
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [
