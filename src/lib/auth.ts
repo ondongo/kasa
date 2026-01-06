@@ -73,10 +73,8 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-export async function getServerSession() {
-  // This will be imported from next-auth in the actual implementation
-  return null;
-}
+// Export getServerSession from next-auth for use throughout the app
+export { getServerSession } from 'next-auth';
 
 export async function getUserHousehold(userId: string) {
   const membership = await prisma.membership.findFirst({
