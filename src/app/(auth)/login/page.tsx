@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Eye, EyeOff, Loader2, Shield } from 'lucide-react';
 import CodePinInput from '@/components/ui/CodePinInput';
 import { Logo } from '@/components/layout/Logo';
@@ -21,6 +22,7 @@ export default function LoginPage() {
   const [name, setName] = useState('');
   const [householdName, setHouseholdName] = useState('');
   const [registerPhoneNumber, setRegisterPhoneNumber] = useState('');
+  const [region, setRegion] = useState<'AFRICA' | 'EUROPE' | 'AMERICA'>('AFRICA');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -167,6 +169,7 @@ export default function LoginPage() {
           password, 
           name, 
           householdName,
+          region,
           // Pas de phoneNumber à cette étape
         }),
       });
@@ -383,6 +386,22 @@ export default function LoginPage() {
                     onChange={(e) => setHouseholdName(e.target.value)}
                     required
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="region">Région</Label>
+                  <Select value={region} onValueChange={(value: 'AFRICA' | 'EUROPE' | 'AMERICA') => setRegion(value)}>
+                    <SelectTrigger id="region">
+                      <SelectValue placeholder="Sélectionnez votre région" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="AFRICA">Afrique</SelectItem>
+                      <SelectItem value="EUROPE">Europe</SelectItem>
+                      <SelectItem value="AMERICA">Amérique</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Cela définira votre devise par défaut (XOF/XAF pour Afrique, EUR pour Europe, USD pour Amérique)
+                  </p>
                 </div>
               </>
             )}

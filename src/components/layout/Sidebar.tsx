@@ -18,6 +18,7 @@ const navigation = [
     icon: Wallet,
     subItems: [
       { name: 'Investissements', href: '/investments' },
+      { name: 'Caisses d\'épargne', href: '/investments/savings-boxes' },
     ]
   },
   { name: 'Tontines', href: '/tontines', icon: Users },

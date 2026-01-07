@@ -90,6 +90,9 @@ export async function POST(req: Request) {
     }
 
     // Si 2FA n'est pas activé, vérifier quand même les appareils de confiance
+    // TOUJOURS demander OTP si première connexion (aucun appareil de confiance) ou appareil non reconnu
+    const isFirstConnection = user.trustedDevices.length === 0;
+    
     // Récupérer les informations de l'appareil actuel
     const headersList = await headers();
     const userAgent = headersList.get('user-agent') || 'Unknown';
@@ -103,6 +106,23 @@ export async function POST(req: Request) {
     const trustedDevice = user.trustedDevices.find(device => 
       device.userAgent.includes(`fingerprint:${fingerprint}`)
     );
+
+    // Si première connexion, toujours demander OTP
+    if (isFirstConnection) {
+      if (!user.phoneNumber) {
+        return NextResponse.json({
+          isTrusted: false,
+          requiresOTP: false,
+          message: 'Première connexion - Veuillez configurer un numéro de téléphone',
+        });
+      }
+      return NextResponse.json({
+        isTrusted: false,
+        requiresOTP: true,
+        phoneNumber: user.phoneNumber,
+        message: 'Première connexion - Vérification requise',
+      });
+    }
 
     if (trustedDevice) {
       // Mettre à jour la dernière utilisation
@@ -118,7 +138,15 @@ export async function POST(req: Request) {
       });
     }
 
-    // Appareil non reconnu, OTP requis
+    // Appareil non reconnu, OTP requis (toujours demander si pas de trusted device)
+    if (!user.phoneNumber) {
+      return NextResponse.json({
+        isTrusted: false,
+        requiresOTP: false,
+        message: 'Appareil non reconnu - Veuillez configurer un numéro de téléphone',
+      });
+    }
+
     return NextResponse.json({
       isTrusted: false,
       requiresOTP: true,

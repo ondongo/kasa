@@ -6,7 +6,7 @@ import { RegisterSchema } from '@/lib/zod-schemas';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, password, name, householdName, phoneNumber } = body;
+    const { email, password, name, householdName, phoneNumber, region } = body;
 
     if (!email || !password || !name || !householdName) {
       return NextResponse.json(
@@ -38,11 +38,21 @@ export async function POST(req: Request) {
         },
       });
 
+      // Déterminer la devise par défaut selon la région
+      let defaultCurrency = 'EUR';
+      if (region === 'AFRICA') {
+        defaultCurrency = 'XOF'; // Franc CFA (peut être changé en XAF selon le pays)
+      } else if (region === 'EUROPE') {
+        defaultCurrency = 'EUR';
+      } else if (region === 'AMERICA') {
+        defaultCurrency = 'USD';
+      }
+
       // Créer les préférences par défaut
       await tx.userPreferences.create({
         data: {
           userId: user.id,
-          currency: 'EUR',
+          currency: defaultCurrency,
           language: 'fr',
           theme: 'dark',
         },

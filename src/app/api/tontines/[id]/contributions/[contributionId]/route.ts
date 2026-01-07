@@ -35,10 +35,9 @@ export async function PATCH(
       return NextResponse.json({ message: 'Tontine introuvable' }, { status: 404 });
     }
 
-    // Vérifier que l'utilisateur est membre de la tontine
-    const isMember = tontine.members.some((m) => m.userId === session.user.id);
-    if (!isMember) {
-      return NextResponse.json({ message: 'Accès refusé' }, { status: 403 });
+    // Vérifier que l'utilisateur est le créateur de la tontine
+    if (tontine.creatorId !== session.user.id) {
+      return NextResponse.json({ message: 'Seul le créateur peut marquer les paiements' }, { status: 403 });
     }
 
     // Récupérer la contribution

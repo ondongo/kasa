@@ -195,6 +195,7 @@ model Household {
   categories          Category[]
   investmentEnvelopes InvestmentEnvelope[]
   recurringTemplates  RecurringTemplate[]
+  savingsBoxes        SavingsBox[]
 
   @@map("households")
 }
@@ -480,4 +481,42 @@ model TontineContribution {
   @@index([tontineId, userId])
   @@index([roundId, status])
   @@map("tontine_contributions")
+}
+
+// ========== CAISSE D'ÉPARGNE MODELS ==========
+
+model SavingsBox {
+  id          String   @id @default(cuid())
+  householdId String
+  name        String
+  description String?  @db.Text
+  targetAmount Int     // Montant cible en centimes
+  currentAmount Int    @default(0) // Montant actuel en centimes
+  currency    String   @default("EUR")
+  monthlyContribution Int? // Contribution mensuelle en centimes
+  dueDate     DateTime? // Date limite pour atteindre l'objectif
+  isRevoked   Boolean  @default(false) // Révocation
+  revokedAt   DateTime? // Date de révocation
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  contributions SavingsBoxContribution[]
+
+  @@map("savings_boxes")
+}
+
+model SavingsBoxContribution {
+  id            String   @id @default(cuid())
+  savingsBoxId  String
+  amount        Int      // Montant de la contribution en centimes
+  contributionDate DateTime @default(now()) // Date de la contribution
+  month         String   // Format: "YYYY-MM"
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  savingsBox SavingsBox @relation(fields: [savingsBoxId], references: [id], onDelete: Cascade)
+
+  @@index([savingsBoxId, month])
+  @@map("savings_box_contributions")
 }
