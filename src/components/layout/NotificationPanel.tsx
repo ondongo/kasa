@@ -153,13 +153,8 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
                   !notification.read ? 'bg-primary/5' : 'bg-card'
                 }`}
               >
-                {/* Cercle arrondi sur le côté gauche */}
-                <div className="flex items-center justify-center flex-shrink-0 pl-4 py-4">
-                  <div className={`w-4 h-4 ${getSidebarColor(notification.type)} rounded-full`} />
-                </div>
-                
                 <div className="flex gap-3 p-4 flex-1">
-                  <div className={`flex-shrink-0 rounded-lg p-2 ${getColor(notification.type)}`}>
+                  <div className={`shrink-0 rounded-lg p-2 ${getColor(notification.type)}`}>
                     {getIcon(notification.type)}
                   </div>
                   <div className="flex-1 min-w-0">
