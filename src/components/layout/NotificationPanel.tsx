@@ -91,6 +91,19 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
     }
   };
 
+  const getSidebarColor = (type: string) => {
+    switch (type) {
+      case 'SUCCESS':
+        return 'bg-green-600';
+      case 'WARNING':
+        return 'bg-orange-600';
+      case 'ERROR':
+        return 'bg-red-600';
+      default:
+        return 'bg-blue-600';
+    }
+  };
+
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
@@ -132,16 +145,19 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
             </p>
           </div>
         ) : (
-          <div className="divide-y">
+          <div className="p-2 space-y-2">
             {notifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`p-4 hover:bg-muted/50 transition-colors ${
-                  !notification.read ? 'bg-primary/5' : ''
+                className={`relative flex gap-0 hover:bg-muted/50 transition-colors rounded-xl overflow-hidden ${
+                  !notification.read ? 'bg-primary/5' : 'bg-card'
                 }`}
               >
-                <div className="flex gap-3">
-                  <div className={`flex-shrink-0 rounded-full p-2 ${getColor(notification.type)}`}>
+                {/* Barre latérale arrondie */}
+                <div className={`w-1.5 ${getSidebarColor(notification.type)} rounded-l-xl`} />
+                
+                <div className="flex gap-3 p-4 flex-1">
+                  <div className={`flex-shrink-0 rounded-lg p-2 ${getColor(notification.type)}`}>
                     {getIcon(notification.type)}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -183,7 +199,7 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
                       <Button
                         variant="link"
                         size="sm"
-                        className="mt-2 h-auto p-0 text-xs"
+                        className="mt-2 h-auto p-0 text-xs text-[#F2C086]"
                         onClick={() => {
                           window.location.href = notification.actionUrl!;
                         }}
