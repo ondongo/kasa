@@ -15,26 +15,15 @@ import { usePreferences } from '@/contexts/PreferencesContext';
 import { formatMoney } from '@/lib/money';
 import { Plus, Trash2, Edit2, X, Calendar, Target, TrendingUp, AlertCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
+import {
+  getSavingsBoxes,
+  createSavingsBox,
+  updateSavingsBox,
+  deleteSavingsBox,
+  addContribution,
+} from '@/lib/actions/savings-boxes';
 
-interface SavingsBox {
-  id: string;
-  name: string;
-  description: string | null;
-  targetAmount: number;
-  currentAmount: number;
-  currency: string;
-  monthlyContribution: number | null;
-  dueDate: string | null;
-  isRevoked: boolean;
-  revokedAt: string | null;
-  createdAt: string;
-  contributions: Array<{
-    id: string;
-    amount: number;
-    contributionDate: string;
-    month: string;
-  }>;
-}
+type SavingsBox = Awaited<ReturnType<typeof getSavingsBoxes>>[0];
 
 export default function SavingsBoxesPage() {
   const [month, setMonth] = useState(getCurrentMonth());
@@ -56,15 +45,11 @@ export default function SavingsBoxesPage() {
   async function loadData() {
     setLoading(true);
     try {
-      const response = await fetch('/api/savings-boxes');
-      if (!response.ok) {
-        throw new Error('Erreur lors du chargement');
-      }
-      const data = await response.json();
-      setSavingsBoxes(data);
-    } catch (error) {
+      const data = await getSavingsBoxes();
+      setSavingsBoxes(data as SavingsBox[]);
+    } catch (error: any) {
       console.error('Erreur lors du chargement:', error);
-      toast.error('Erreur lors du chargement des caisses d\'épargne');
+      toast.error(error.message || 'Erreur lors du chargement des caisses d\'épargne');
     } finally {
       setLoading(false);
     }
@@ -84,20 +69,11 @@ export default function SavingsBoxesPage() {
     }
 
     try {
-      const response = await fetch(`/api/savings-boxes/${selectedBox.id}/contributions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: Math.round(parseFloat(contributionAmount) * 100),
-          contributionDate: contributionDate || new Date().toISOString(),
-          month: month,
-        }),
+      await addContribution(selectedBox.id, {
+        amount: Math.round(parseFloat(contributionAmount) * 100),
+        contributionDate: contributionDate || new Date().toISOString(),
+        month: month,
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Erreur lors de l\'ajout');
-      }
 
       toast.success('Contribution ajoutée');
       setContributionDialogOpen(false);
@@ -113,16 +89,7 @@ export default function SavingsBoxesPage() {
     }
 
     try {
-      const response = await fetch(`/api/savings-boxes/${box.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isRevoked: true }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Erreur lors de la révocation');
-      }
-
+      await updateSavingsBox(box.id, { isRevoked: true });
       toast.success('Caisse d\'épargne révoquée');
       loadData();
     } catch (error: any) {
@@ -136,14 +103,7 @@ export default function SavingsBoxesPage() {
     }
 
     try {
-      const response = await fetch(`/api/savings-boxes/${box.id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Erreur lors de la suppression');
-      }
-
+      await deleteSavingsBox(box.id);
       toast.success('Caisse d\'épargne supprimée');
       loadData();
     } catch (error: any) {

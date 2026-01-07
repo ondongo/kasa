@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'react-toastify';
+import { createSavingsBox, updateSavingsBox } from '@/lib/actions/savings-boxes';
 
 interface SavingsBoxDialogProps {
   open: boolean;
@@ -56,26 +57,22 @@ export function SavingsBoxDialog({
     setLoading(true);
 
     try {
-      const url = savingsBox
-        ? `/api/savings-boxes/${savingsBox.id}`
-        : '/api/savings-boxes';
-      const method = savingsBox ? 'PATCH' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      if (savingsBox) {
+        await updateSavingsBox(savingsBox.id, {
           name,
           description,
           targetAmount: Math.round(parseFloat(targetAmount) * 100),
-          monthlyContribution: monthlyContribution ? Math.round(parseFloat(monthlyContribution) * 100) : null,
-          dueDate: dueDate || null,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Erreur lors de la sauvegarde');
+          monthlyContribution: monthlyContribution ? Math.round(parseFloat(monthlyContribution) * 100) : undefined,
+          dueDate: dueDate || undefined,
+        });
+      } else {
+        await createSavingsBox({
+          name,
+          description,
+          targetAmount: Math.round(parseFloat(targetAmount) * 100),
+          monthlyContribution: monthlyContribution ? Math.round(parseFloat(monthlyContribution) * 100) : undefined,
+          dueDate: dueDate || undefined,
+        });
       }
 
       toast.success(savingsBox ? 'Caisse d\'épargne mise à jour' : 'Caisse d\'épargne créée');
