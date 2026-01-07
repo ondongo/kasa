@@ -65,7 +65,7 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
     }
   };
 
-  const getIcon = (type: string) => {
+  const getIcon = (type: 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR') => {
     switch (type) {
       case 'SUCCESS':
         return <Check className="h-5 w-5 text-green-600" />;
