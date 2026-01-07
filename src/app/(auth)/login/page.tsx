@@ -11,6 +11,7 @@ import { Eye, EyeOff, Loader2, Shield } from 'lucide-react';
 import CodePinInput from '@/components/ui/CodePinInput';
 import { Logo } from '@/components/layout/Logo';
 import { toast } from 'react-toastify';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -244,10 +245,10 @@ export default function LoginPage() {
       </div>
       
       {/* Logo Kasa en arrière-plan */}
-      <div className="absolute top-8 left-8 flex items-center gap-2 z-10">
+      <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 z-10 cursor-pointer hover:opacity-80 transition-opacity">
         <Logo className="h-10 w-10" />
         <span className="text-2xl font-bold text-white">Kasa</span>
-      </div>
+      </Link>
       
       {/* Contenu principal */}
       <Card className="relative z-10 w-full max-w-md bg-card border-2 border-[#F2C086]/20">
