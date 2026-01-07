@@ -154,7 +154,7 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
                 }`}
               >
                 <div className="flex gap-3 p-4 flex-1">
-                  <div className={`shrink-0 rounded-lg p-2 ${getColor(notification.type)}`}>
+                  <div className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${getColor(notification.type)}`}>
                     {getIcon(notification.type)}
                   </div>
                   <div className="flex-1 min-w-0">
