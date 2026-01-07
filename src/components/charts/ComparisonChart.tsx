@@ -103,9 +103,7 @@ export function ComparisonChart({ current, isHidden = false, currency = 'EUR' }:
                       width: `${Math.min(item.percentage, 100)}%`,
                       backgroundColor: item.color,
                     }}
-                  >
-                    <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-                  </div>
+                  />
                 </div>
               </div>
             </div>

@@ -4,10 +4,50 @@ import { Users, PiggyBank, Wallet, TrendingUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const badges = [
-  { icon: Users, label: 'Budget Couple', color: '#F2C086', position: 'top-left' },
-  { icon: PiggyBank, label: 'Tontines', color: '#F2C086', position: 'top-right' },
-  { icon: Wallet, label: 'Dépenses', color: '#F2C086', position: 'bottom-left' },
-  { icon: TrendingUp, label: 'Investissements', color: '#F2C086', position: 'bottom-right' },
+  { 
+    icon: Users, 
+    label: 'Budget Couple', 
+    bgColor: 'bg-white/10', 
+    borderColor: 'border-white/30',
+    textColor: 'text-white',
+    iconBg: 'bg-white/20',
+    pointerColor: 'white',
+    pointerPosition: 'bottom-right',
+    position: 'top-left' 
+  },
+  { 
+    icon: PiggyBank, 
+    label: 'Tontines', 
+    bgColor: 'bg-[#F2C086]/20', 
+    borderColor: 'border-[#F2C086]/40',
+    textColor: 'text-[#F2C086]',
+    iconBg: 'bg-[#F2C086]/30',
+    pointerColor: '#F2C086',
+    pointerPosition: 'bottom-left',
+    position: 'top-right' 
+  },
+  { 
+    icon: Wallet, 
+    label: 'Dépenses', 
+    bgColor: 'bg-[#F2C086]/20', 
+    borderColor: 'border-[#F2C086]/40',
+    textColor: 'text-[#F2C086]',
+    iconBg: 'bg-[#F2C086]/30',
+    pointerColor: '#F2C086',
+    pointerPosition: 'top-right',
+    position: 'bottom-left' 
+  },
+  { 
+    icon: TrendingUp, 
+    label: 'Investissements', 
+    bgColor: 'bg-white/10', 
+    borderColor: 'border-white/30',
+    textColor: 'text-white',
+    iconBg: 'bg-white/20',
+    pointerColor: 'white',
+    pointerPosition: 'top-left',
+    position: 'bottom-right' 
+  },
 ];
 
 export function FloatingBadges() {
@@ -28,56 +68,59 @@ export function FloatingBadges() {
 
         switch (badge.position) {
           case 'top-left':
-            positionClasses = 'top-32 left-8 lg:left-20';
+            positionClasses = 'top-[140px] left-8 lg:left-16';
             animationClass = 'floating-1';
             break;
           case 'top-right':
-            positionClasses = 'top-40 right-8 lg:right-32';
+            positionClasses = 'top-[160px] right-8 lg:right-16';
             animationClass = 'floating-2';
             break;
           case 'bottom-left':
-            positionClasses = 'top-[500px] left-12 lg:left-40';
+            positionClasses = 'top-[380px] left-20 lg:left-40';
             animationClass = 'floating-3';
             break;
           case 'bottom-right':
-            positionClasses = 'top-[450px] right-12 lg:right-48';
+            positionClasses = 'top-[380px] right-20 lg:right-40';
             animationClass = 'floating-4';
             break;
         }
 
+        // Position des points pulse superposés au badge, juste au bout (haut ou bas, centrés)
+        let pointClasses = '';
+        const pointColor = badge.pointerColor === 'white' 
+          ? 'bg-white' 
+          : 'bg-[#F2C086]';
+        
+        switch (badge.position) {
+          case 'top-left':
+            // Point en bas du badge, centré, collé au bord
+            pointClasses = 'absolute -bottom-1 left-1/2 -translate-x-1/2';
+            break;
+          case 'top-right':
+            // Point en bas du badge, centré, collé au bord
+            pointClasses = 'absolute -bottom-1 left-1/2 -translate-x-1/2';
+            break;
+          case 'bottom-left':
+            // Point en haut du badge, centré, collé au bord
+            pointClasses = 'absolute -top-1 left-1/2 -translate-x-1/2';
+            break;
+          case 'bottom-right':
+            // Point en haut du badge, centré, collé au bord
+            pointClasses = 'absolute -top-1 left-1/2 -translate-x-1/2';
+            break;
+        }
+        
         return (
           <div
             key={index}
-            className={`hidden lg:flex absolute ${positionClasses} ${animationClass} items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm border transition-all hover:scale-110 z-10`}
-            style={{
-              background: `${badge.color}15`,
-              borderColor: `${badge.color}40`,
-            }}
+            className={`hidden lg:flex absolute ${positionClasses} ${animationClass} items-center gap-2 px-4 py-2 rounded-full border ${badge.borderColor} ${badge.bgColor} backdrop-blur-sm z-10`}
           >
-            <div
-              className="p-1.5 rounded-full"
-              style={{ backgroundColor: `${badge.color}30` }}
-            >
-              <Icon className="h-4 w-4" style={{ color: badge.color }} />
+            <div className={`p-1.5 rounded-full ${badge.iconBg}`}>
+              <Icon className="h-4 w-4 text-[#F2C086]" />
             </div>
-            <span
-              className="text-sm font-medium"
-              style={{ color: badge.color }}
-            >
+            <span className={`text-sm font-medium ${badge.textColor}`}>
               {badge.label}
             </span>
-            <div className="absolute -top-1 -right-1">
-              <span className="relative flex h-3 w-3">
-                <span
-                  className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-                  style={{ backgroundColor: badge.color }}
-                ></span>
-                <span
-                  className="relative inline-flex rounded-full h-3 w-3"
-                  style={{ backgroundColor: badge.color }}
-                ></span>
-              </span>
-            </div>
           </div>
         );
       })}

@@ -55,10 +55,10 @@ export default function FaqAccordion() {
     <section id="faq" className="py-14 md:py-28 bg-transparent">
       <div className="wrapper">
         <div className="max-w-2xl mx-auto mb-12 text-center">
-          <h2 className="mb-4 font-bold text-center text-gray-800 text-4xl dark:text-white/90 md:text-title-lg">
+          <h2 className="mb-4 font-bold text-center text-white text-4xl md:text-title-lg">
             Questions fréquentes
           </h2>
-          <p className="max-w-xl mx-auto text-xl leading-relaxed text-gray-500 dark:text-gray-400">
+          <p className="max-w-xl mx-auto text-xl leading-relaxed text-gray-400">
             Tout ce que vous devez savoir sur Kasa
           </p>
         </div>
@@ -90,23 +90,23 @@ function FAQItem({
   onToggle: () => void;
 }) {
   return (
-    <div className="pb-5 border-b border-gray-200 dark:border-gray-800">
+    <div className="pb-5 border-b border-[#2A2520]">
       <button
         type="button"
         className="flex items-center justify-between w-full text-left"
         onClick={onToggle}
         aria-expanded={isActive}
       >
-        <span className="text-lg font-medium text-gray-800 dark:text-white/90">
+        <span className="text-lg font-medium text-white">
           {item.question}
         </span>
-        <span className="shrink-0 ml-6">
+        <span className="shrink-0 ml-6 text-[#F2C086]">
           {isActive ? <Minus className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
         </span>
       </button>
       {isActive && (
         <div className="mt-5">
-          <p className="text-base leading-7 text-gray-500 dark:text-gray-400">
+          <p className="text-base leading-7 text-gray-400">
             {item.answer}
           </p>
         </div>

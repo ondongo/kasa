@@ -122,9 +122,7 @@ export default function DashboardPage() {
                       <div
                         className="absolute inset-y-0 left-0 rounded-full bg-[#F2C086] transition-all duration-700"
                         style={{ width: `${Math.min(summary?.savingsRate || 0, 100)}%` }}
-                      >
-                        <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-                      </div>
+                      />
                     </div>
                   </div>
 
@@ -143,9 +141,7 @@ export default function DashboardPage() {
                           width: `${Math.min(summary?.globalSavingsRate || 0, 100)}%`,
                           backgroundColor: '#F2C086',
                         }}
-                      >
-                        <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-                      </div>
+                      />
                     </div>
                   </div>
 

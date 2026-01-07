@@ -71,10 +71,10 @@ export default function TestimonialsSection() {
     <section className="py-20 md:py-28 relative bg-transparent">
       <div className="container mx-auto px-6">
         <div className="max-w-2xl mx-auto mb-16 text-center">
-          <h2 className="mb-4 font-bold text-gray-800 text-4xl dark:text-white/90 md:text-title-lg">
+          <h2 className="mb-4 font-bold text-white text-4xl md:text-title-lg">
             Ce que nos utilisateurs disent
           </h2>
-          <p className="max-w-xl mx-auto text-xl leading-relaxed text-gray-500 dark:text-gray-400">
+          <p className="max-w-xl mx-auto text-xl leading-relaxed text-gray-400">
             Rejoignez des centaines d'utilisateurs satisfaits qui ont simplifié leur gestion financière
           </p>
         </div>
@@ -94,7 +94,7 @@ export default function TestimonialsSection() {
           <div className="mt-12 text-center">
             <button
               onClick={() => setShowAll(!showAll)}
-              className="px-8 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm"
+              className="px-8 py-3 text-sm font-medium text-gray-300 bg-card border-2 border-[#F2C086]/20 rounded-full transition-all"
             >
               {showAll ? 'Voir moins' : 'Voir plus de témoignages'}
             </button>
@@ -111,12 +111,9 @@ function TestimonialCard({
   testimonial: (typeof testimonials)[number];
 }) {
   return (
-    <div className="relative group">
-      {/* Subtle glow effect */}
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-[#F2C086]/20 to-[#F2C086]/10 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500"></div>
-      
+    <div className="relative">
       {/* Card */}
-      <div className="relative bg-gray-800/50 backdrop-blur-xl border border-gray-700 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1">
+      <div className="bg-card border-2 border-[#F2C086]/20 rounded-2xl p-6">
         {/* Rating */}
         <div className="flex gap-1 mb-4">
           {[...Array(testimonial.rating)].map((_, i) => (
@@ -131,7 +128,7 @@ function TestimonialCard({
 
         {/* Author */}
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-[#F2C086]/20 flex items-center justify-center font-semibold text-[#F2C086]">
+          <div className="w-12 h-12 rounded-full bg-[#2A2520] flex items-center justify-center font-semibold text-[#F2C086]">
             {testimonial.avatar}
           </div>
           <div>
