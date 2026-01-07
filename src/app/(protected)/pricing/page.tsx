@@ -96,27 +96,22 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+    <div className="min-h-screen bg-linear-to-b from-background to-muted/20">
       <div className="container mx-auto p-6 max-w-6xl">
         {/* Hero Section */}
-        <div className="text-center mb-16 pt-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-            <Sparkles className="h-4 w-4" />
-            <span>Offre de lancement</span>
-          </div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Gérez votre budget ensemble
+        <div className="text-center mb-12 pt-8">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">
+            Tarifs
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            La solution complète pour gérer vos finances en couple. Simple,
-            sécurisé et accessible.
+          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+            La solution complète pour gérer votre budget seul ou en couple
           </p>
         </div>
 
-        {/* Statut actuel */}
-        {subscription && (
+        {/* Statut actuel - Afficher uniquement si abonnement actif */}
+        {subscription && (isActive || isTrialActive) && (
           <Card className="mb-12 border-2 shadow-lg max-w-2xl mx-auto">
-            <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 border-b">
+            <CardHeader className="bg-linear-to-r from-primary/10 to-primary/5 border-b">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl">Votre abonnement</CardTitle>
                 <Badge
@@ -184,14 +179,14 @@ export default function PricingPage() {
           </Card>
         )}
 
-        <section className="py-20 md:py-28 ">
+        <section className="py-12">
           <div className="container mx-auto px-6">
             <div className="max-w-4xl mx-auto">
-              <div className="text-center mb-12">
-                <h2 className="text-4xl font-bold mb-4">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold mb-4 text-white">
                   Un prix abordable pour tous
                 </h2>
-                <p className="text-xl text-muted-foreground">
+                <p className="text-lg text-gray-400">
                   Accédez à toutes les fonctionnalités pour seulement 2000 FCFA
                   par an
                 </p>
@@ -205,29 +200,29 @@ export default function PricingPage() {
 
                 <div className="text-center mb-8">
                   <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-6xl font-extrabold text-[#F2C086]">
+                    <span className="text-5xl font-extrabold text-[#F2C086]">
                       2 000
                     </span>
                     <div className="flex flex-col items-start">
-                      <span className="text-2xl font-bold text-muted-foreground">
+                      <span className="text-xl font-bold text-gray-400">
                         FCFA
                       </span>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm text-gray-400">
                         / an
                       </span>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-2">
+                  <p className="text-sm text-gray-400 mt-2">
                     Soit ~3,05 € ou ~3,32 $ par an
                   </p>
                   <p className="text-sm font-medium text-[#F2C086] mt-1">
-                    ✨ Seulement 167 FCFA par mois
+                    Seulement 167 FCFA par mois
                   </p>
                 </div>
 
                 <ul className="space-y-3 mb-8">
                   {[
-                    "Budget en couple illimité",
+                    "Budget illimité (seul ou en couple)",
                     "Tontines collectives sans limite",
                     "Suivi des investissements",
                     "Multi-devises (EUR, USD, FCFA)",
@@ -258,12 +253,12 @@ export default function PricingPage() {
 
 
         {/* Section Pourquoi Kasa */}
-        <div className="mt-24 mb-12">
-          <h2 className="text-3xl font-bold text-center mb-4">
+        <div className="mt-16 mb-12">
+          <h2 className="text-2xl font-bold text-center mb-4 text-white">
             Pourquoi choisir Kasa ?
           </h2>
-          <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-            La solution complète pour gérer vos finances en couple
+          <p className="text-center text-gray-400 mb-8 max-w-2xl mx-auto">
+            La solution complète pour gérer votre budget seul ou en couple
           </p>
           <div className="grid md:grid-cols-3 gap-8">
             <Card className="text-center border-2 border-[#F2C086]/20 bg-card">
@@ -315,19 +310,19 @@ export default function PricingPage() {
 
         {/* Footer CTA */}
         {!isActive && (
-          <div className="text-center py-16 px-6 rounded-2xl bg-card border-2 border-[#F2C086]/20 mb-8">
-            <h3 className="text-3xl font-bold mb-4">
+          <div className="text-center py-12 px-6 rounded-2xl bg-card border-2 border-[#F2C086]/20 mb-8">
+            <h3 className="text-2xl font-bold mb-4 text-white">
               Prêt à maîtriser vos finances ?
             </h3>
-            <p className="text-muted-foreground mb-8 max-w-xl mx-auto text-lg">
-              Rejoignez des centaines de couples qui gèrent déjà leur budget
+            <p className="text-gray-400 mb-8 max-w-xl mx-auto">
+              Rejoignez des centaines d'utilisateurs qui gèrent déjà leur budget
               avec Kasa.
             </p>
             <Button
               onClick={handleSubscribe}
               disabled={processing}
               size="lg"
-              className="h-14 px-10 text-base font-bold shadow-xl hover:shadow-2xl transition-all duration-300"
+              className="bg-[#F2C086] hover:bg-[#F2C086]/90 text-black font-semibold h-12 px-8"
             >
               {processing ? (
                 <>

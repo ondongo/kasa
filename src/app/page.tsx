@@ -10,7 +10,9 @@ import FaqAccordion from '@/components/sections/faq-accordion';
 import { FloatingBadges } from '@/components/home/FloatingBadges';
 import { FeatureTabs } from '@/components/home/FeatureTabs';
 import TestimonialsSection from '@/components/sections/client-testimonial';
-import { Crown, CheckCircle2, Sparkles, ChevronDown, Play } from 'lucide-react';
+import { NavLinks } from '@/components/home/NavLinks';
+import { Logo } from '@/components/layout/Logo';
+import { Crown, CheckCircle2, Sparkles, Play } from 'lucide-react';
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -33,35 +35,13 @@ export default async function Home() {
       <nav className="border-b bg-card border-[#2A2520] sticky top-0 z-50">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#F2C086] flex items-center justify-center font-bold text-black">
-              K
-            </div>
+            <Logo className="h-8 w-8" />
             <span className="text-xl font-bold text-white">Kasa</span>
           </Link>
           
           {/* Menu */}
           <div className="hidden md:flex items-center gap-1 bg-[#2A2520] rounded-full p-1">
-            <Link href="/">
-              <button className="px-5 py-2 rounded-full bg-[#F2C086] text-black font-medium transition-all">
-                Accueil
-              </button>
-            </Link>
-            <div className="relative group">
-              <button className="px-5 py-2 rounded-full text-gray-300 font-medium transition-all flex items-center gap-1">
-                Fonctionnalités
-                <ChevronDown className="h-4 w-4" />
-              </button>
-            </div>
-            <Link href="/pricing">
-              <button className="px-5 py-2 rounded-full text-gray-300 font-medium transition-all">
-                Tarifs
-              </button>
-            </Link>
-            <a href="#faq">
-              <button className="px-5 py-2 rounded-full text-gray-300 font-medium transition-all">
-                FAQ
-              </button>
-            </a>
+            <NavLinks />
           </div>
 
           <div className="flex items-center gap-4">
@@ -70,7 +50,7 @@ export default async function Home() {
             </Link>
             <Link href="/login">
               <Button className="bg-[#F2C086] hover:bg-[#F2C086]/90 text-black font-semibold rounded-full">
-                Commencer
+                S'inscrire
               </Button>
             </Link>
           </div>
@@ -85,15 +65,15 @@ export default async function Home() {
         <div className="container mx-auto px-6 text-center relative z-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#2A2520] border border-[#F2C086] text-sm font-medium mb-8">
             <Sparkles className="h-4 w-4 text-[#F2C086]" />
-            <span className="text-gray-300">La solution financière complète pour couples et groupes</span>
+            <span className="text-gray-300">La solution financière complète pour gérer votre budget seul, en couple ou en groupe</span>
           </div>
 
           <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight max-w-4xl mx-auto text-white">
-            Gérez vos finances <span className="text-[#F2C086]">ensemble</span>
+            Gérez vos finances <span className="text-[#F2C086]">simplement</span>
           </h1>
           
           <p className="text-lg text-gray-300 max-w-2xl mx-auto mb-10">
-            Budget en couple, tontines collectives, suivi des investissements. 
+            Budget simple, budget en couple, tontines collectives, suivi des investissements. 
             Kasa est bien plus qu'une simple app de gestion de budget.
           </p>
 
@@ -147,13 +127,19 @@ export default async function Home() {
       </section>
 
       {/* Tabs des fonctionnalités */}
-      <FeatureTabs />
+      <div style={{ backgroundColor: '#191919' }} className="bg-muted/50">
+        <FeatureTabs />
+      </div>
 
       {/* Core Features */}
-  <CoreFeatures />
+      <div style={{ backgroundColor: '#191919' }} className="bg-muted/50">
+        <CoreFeatures />
+      </div>
 
       {/* Benefits */}
-  <BenefitsGrid />
+      <div style={{ backgroundColor: '#191919' }} className="bg-muted/50">
+        <BenefitsGrid />
+      </div>
 
       {/* Testimonials */}
   <TestimonialsSection />
@@ -197,7 +183,7 @@ export default async function Home() {
 
               <ul className="space-y-3 mb-8">
                 {[
-                  'Budget en couple illimité',
+                  'Budget illimité (seul ou en couple)',
                   'Tontines collectives sans limite',
                   'Suivi des investissements',
                   'Multi-devises (EUR, USD, FCFA)',
@@ -240,7 +226,7 @@ export default async function Home() {
               Prêt à transformer votre gestion financière ?
             </h2>
             <p className="text-lg text-gray-400 mb-8 max-w-2xl mx-auto">
-              Rejoignez des centaines de couples et groupes qui gèrent déjà leurs finances avec Kasa.
+              Rejoignez des centaines d'utilisateurs qui gèrent déjà leurs finances avec Kasa.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
               <Link href="/login">
@@ -260,26 +246,16 @@ export default async function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#2A2520] py-12 bg-card">
+      <footer className="border-t border-[#2A2520] py-8 bg-card">
         <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[#F2C086] flex items-center justify-center font-bold text-black">
-                K
-              </div>
+              <Logo className="h-8 w-8" />
               <span className="text-xl font-bold text-white">Kasa</span>
             </Link>
             <p className="text-sm text-gray-400">
               © 2026 Kasa. Tous droits réservés.
             </p>
-            <nav className="flex gap-4">
-              <Link href="/privacy" className="text-sm text-gray-400">
-                Confidentialité
-              </Link>
-              <Link href="/terms" className="text-sm text-gray-400">
-                Conditions
-              </Link>
-            </nav>
           </div>
         </div>
       </footer>

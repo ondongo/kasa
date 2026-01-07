@@ -11,7 +11,7 @@ const features = [
     label: 'Budget en Couple',
     color: '#F2C086',
     description: 'Gérez vos finances à deux avec des catégories partagées et un suivi en temps réel.',
-    image: '/images/features/budget-preview.svg',
+    image: 'https://images.unsplash.com/photo-1605460375648-278bcbd579a6?w=800&h=600&fit=crop&q=80',
   },
   {
     id: 'tontines',
@@ -19,7 +19,7 @@ const features = [
     label: 'Tontines',
     color: '#F2C086',
     description: 'Organisez des tontines collectives, invitez des membres et suivez automatiquement les tours.',
-    image: '/images/features/tontine-preview.svg',
+    image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&h=600&fit=crop&q=80',
   },
   {
     id: 'investments',
@@ -27,7 +27,7 @@ const features = [
     label: 'Investissements',
     color: '#F2C086',
     description: 'Suivez l\'évolution de vos placements avec des enveloppes dédiées et des graphiques détaillés.',
-    image: '/images/features/investment-preview.svg',
+    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=600&fit=crop&q=80',
   },
   {
     id: 'currencies',
@@ -35,7 +35,7 @@ const features = [
     label: 'Multi-devises',
     color: '#F2C086',
     description: 'EUR, USD, FCFA - Toutes vos transactions converties automatiquement.',
-    image: '/images/features/currency-preview.svg',
+    image: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&h=600&fit=crop&q=80',
   },
   {
     id: 'security',
@@ -43,7 +43,7 @@ const features = [
     label: 'Sécurité',
     color: '#F2C086',
     description: 'Authentification 2FA, chiffrement bout en bout, appareils de confiance.',
-    image: '/images/features/security-preview.svg',
+    image: 'https://images.unsplash.com/photo-1551836022-deb4988cc6c0?w=800&h=600&fit=crop&q=80',
   },
   {
     id: 'performance',
@@ -51,7 +51,7 @@ const features = [
     label: 'Rapidité',
     color: '#F2C086',
     description: 'Interface ultra-rapide avec synchronisation en temps réel sur tous vos appareils.',
-    image: '/images/features/performance-preview.svg',
+    image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop&q=80',
   },
 ];
 
@@ -132,8 +132,16 @@ export function FeatureTabs() {
                 </div>
               </div>
               <div className="relative h-[300px] md:h-[400px] rounded-xl overflow-hidden bg-[#2A2520] border border-[#F2C086]">
+                <Image
+                  src={activeFeature.image}
+                  alt={activeFeature.label}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+                <div className="absolute inset-0 bg-linear-to-t from-[#1E2634]/90 via-[#1E2634]/50 to-transparent" />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center p-8">
+                  <div className="text-center p-8 relative z-10">
                     <Icon className="w-20 h-20 mx-auto mb-4 text-[#F2C086]" />
                     <p className="text-2xl font-bold text-[#F2C086]">
                       {activeFeature.label}
@@ -149,4 +157,3 @@ export function FeatureTabs() {
     </section>
   );
 }
-

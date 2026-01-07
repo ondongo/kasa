@@ -29,6 +29,8 @@ export const config = {
     '/expenses/:path*',
     '/investments/:path*',
     '/settings/:path*',
+    '/pricing/:path*',
+    '/tontines/:path*',
   ],
 };
 

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions, getUserHousehold } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { centsToEuros } from '@/lib/money';
+import { centsToUnits } from '@/lib/money';
 
 export async function GET(req: Request) {
   try {
@@ -45,7 +45,7 @@ export async function GET(req: Request) {
     // Générer CSV
     const csvHeader = 'Type,Mois,Libellé,Montant,Propriétaire,Catégorie,Sous-catégorie,Enveloppe\n';
     const csvRows = transactions.map((t: any) => {
-      const amount = centsToEuros(t.amount);
+      const amount = centsToUnits(t.amount);
       const category = t.category?.name || '';
       const subcategory = t.subcategory?.name || '';
       const envelope = t.investmentEnvelope?.name || '';

@@ -25,9 +25,21 @@ export function calculateBudgetSummary(transactions: any[], targetCurrency: stri
   const sumWithConversion = (items: any[]) => {
     return items.reduce((sum, t) => {
       const sourceCurrency = t.currency || 'EUR';
+      
+      // Si la devise source et cible sont identiques, pas de conversion
+      if (sourceCurrency === targetCurrency) {
+        return sum + t.amount;
+      }
+      
+      // Convertir en unités dans la devise source
       const sourceUnits = centsToUnits(t.amount, sourceCurrency);
+      
+      // Convertir dans la devise cible
       const targetUnits = convertCurrency(sourceUnits, sourceCurrency, targetCurrency);
+      
+      // Reconvertir en "centimes" pour la devise cible
       const targetCents = unitsToCents(targetUnits, targetCurrency);
+      
       return sum + targetCents;
     }, 0);
   };

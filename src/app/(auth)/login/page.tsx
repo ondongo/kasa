@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff, Loader2, Shield } from 'lucide-react';
 import CodePinInput from '@/components/ui/CodePinInput';
+import { Logo } from '@/components/layout/Logo';
 import { toast } from 'react-toastify';
 
 export default function LoginPage() {
@@ -244,9 +245,7 @@ export default function LoginPage() {
       
       {/* Logo Kasa en arrière-plan */}
       <div className="absolute top-8 left-8 flex items-center gap-2 z-10">
-        <div className="w-10 h-10 rounded-xl bg-[#F2C086] flex items-center justify-center font-bold text-black text-xl">
-          K
-        </div>
+        <Logo className="h-10 w-10" />
         <span className="text-2xl font-bold text-white">Kasa</span>
       </div>
       

@@ -14,13 +14,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // Vérifier que l'utilisateur existe et récupérer son téléphone
+    // Vérifier que l'utilisateur existe et récupérer son téléphone et préférences
     const user = await prisma.user.findUnique({
       where: { email },
-      select: {
-        id: true,
-        phoneNumber: true,
+      include: {
         trustedDevices: true,
+        preferences: true,
       },
     });
 
@@ -31,15 +30,66 @@ export async function POST(req: Request) {
       );
     }
 
-    // Si l'utilisateur n'a pas de numéro de téléphone, impossible de vérifier
-    if (!user.phoneNumber) {
+    // Si 2FA est activé mais pas de numéro de téléphone, refuser la connexion
+    // Note: twoFactorEnabled n'existe pas encore dans le schéma, on vérifie juste le phoneNumber
+    const twoFactorEnabled = false; // À activer quand le champ sera ajouté au schéma
+    if (twoFactorEnabled && !user.phoneNumber) {
+      return NextResponse.json({
+        isTrusted: false,
+        requiresOTP: true,
+        error: '2FA activé mais aucun numéro de téléphone configuré',
+      }, { status: 400 });
+    }
+
+    // Si 2FA n'est pas activé et pas de numéro de téléphone, permettre la connexion
+    if (!twoFactorEnabled && !user.phoneNumber) {
       return NextResponse.json({
         isTrusted: true,
         requiresOTP: false,
-        message: 'Aucun numéro de téléphone configuré',
+        message: '2FA non activé et aucun numéro de téléphone configuré',
       });
     }
 
+    // Si 2FA est activé, toujours demander OTP si appareil non fiable
+    if (twoFactorEnabled) {
+      // Récupérer les informations de l'appareil actuel
+      const headersList = await headers();
+      const userAgent = headersList.get('user-agent') || 'Unknown';
+      const ipAddress = headersList.get('x-forwarded-for') || 
+                        headersList.get('x-real-ip') || 
+                        'Unknown';
+
+      const fingerprint = generateDeviceFingerprint(userAgent, ipAddress);
+
+      // Vérifier si l'appareil est dans la liste des appareils de confiance
+      const trustedDevice = user.trustedDevices.find(device => 
+        device.userAgent.includes(`fingerprint:${fingerprint}`)
+      );
+
+      if (trustedDevice) {
+        // Mettre à jour la dernière utilisation
+        await prisma.trustedDevice.update({
+          where: { id: trustedDevice.id },
+          data: { lastUsedAt: new Date() },
+        });
+
+        return NextResponse.json({
+          isTrusted: true,
+          requiresOTP: false,
+          deviceName: trustedDevice.name,
+        });
+      }
+
+      // Appareil non reconnu, OTP requis
+      return NextResponse.json({
+        isTrusted: false,
+        requiresOTP: true,
+        phoneNumber: user.phoneNumber,
+        message: '2FA activé - Appareil non reconnu, vérification requise',
+      });
+    }
+
+    // Si 2FA n'est pas activé, vérifier quand même les appareils de confiance
     // Récupérer les informations de l'appareil actuel
     const headersList = await headers();
     const userAgent = headersList.get('user-agent') || 'Unknown';
