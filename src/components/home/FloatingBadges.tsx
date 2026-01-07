@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 const badges = [
   { 
     icon: Users, 
-    label: 'Budget Couple', 
+    label: 'Budgetisation', 
     bgColor: 'bg-white/10', 
     borderColor: 'border-white/30',
     textColor: 'text-white',
