@@ -186,10 +186,16 @@ export default function PricingPage() {
                 <h2 className="text-3xl font-bold mb-4 text-white">
                   Un prix abordable pour tous
                 </h2>
-                <p className="text-lg text-gray-400">
+                <p className="text-lg text-gray-400 mb-4">
                   Accédez à toutes les fonctionnalités pour seulement 2000 FCFA
                   par an
                 </p>
+                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-linear-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30">
+                  <Sparkles className="h-5 w-5 text-green-400" />
+                  <p className="text-base font-semibold text-green-400">
+                    Avec 2000 FCFA par an, économisez jusqu'à <span className="text-white font-bold">1.000.000 FCFA</span> par an en gérant mieux vos finances
+                  </p>
+                </div>
               </div>
 
               <div className="bg-card p-10 rounded-2xl border-2 border-[#F2C086]/20 max-w-md mx-auto">
@@ -300,8 +306,7 @@ export default function PricingPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Seulement 2 000 FCFA/an. Moins cher qu'un repas au restaurant
-                  pour un an de tranquillité financière !
+                  Seulement 2 000 FCFA/an. Investissez 2000 FCFA pour économiser jusqu'à 1.000.000 FCFA par an grâce à une meilleure gestion de vos finances !
                 </p>
               </CardContent>
             </Card>
@@ -314,10 +319,16 @@ export default function PricingPage() {
             <h3 className="text-2xl font-bold mb-4 text-white">
               Prêt à maîtriser vos finances ?
             </h3>
-            <p className="text-gray-400 mb-8 max-w-xl mx-auto">
+            <p className="text-gray-400 mb-4 max-w-xl mx-auto">
               Rejoignez des centaines d'utilisateurs qui gèrent déjà leur budget
               avec Kasa.
             </p>
+            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-linear-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 mb-8">
+              <Sparkles className="h-5 w-5 text-green-400" />
+              <p className="text-base font-semibold text-green-400">
+                Investissez <span className="text-white font-bold">2000 FCFA</span> pour économiser jusqu'à <span className="text-white font-bold">1.000.000 FCFA</span> par an
+              </p>
+            </div>
             <Button
               onClick={handleSubscribe}
               disabled={processing}

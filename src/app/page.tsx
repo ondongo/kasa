@@ -69,12 +69,12 @@ export default async function Home() {
           </div>
 
           <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight max-w-4xl mx-auto text-white">
-            Gérez vos finances <span className="text-[#F2C086]">simplement</span>
+            Économisez jusqu'à <span className="text-[#F2C086]">1.000.000 FCFA</span> par an en gérant mieux vos finances
           </h1>
           
           <p className="text-lg text-gray-300 max-w-2xl mx-auto mb-10">
-            Budget simple, budget en couple, tontines collectives, suivi des investissements. 
-            Kasa est bien plus qu'une simple app de gestion de budget.
+            Pour seulement <span className="text-[#F2C086] font-semibold">2000 FCFA par an</span>, prenez le contrôle total de votre budget, vos tontines et vos investissements. 
+            La solution complète pour gérer vos finances seul, en couple ou en groupe.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
@@ -152,9 +152,15 @@ export default async function Home() {
               <h2 className="text-3xl font-bold mb-4 text-white">
                 Un prix abordable pour tous
               </h2>
-              <p className="text-lg text-gray-400">
+              <p className="text-lg text-gray-400 mb-4">
                 Accédez à toutes les fonctionnalités pour seulement 2000 FCFA par an
               </p>
+              <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-linear-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30">
+                <Sparkles className="h-5 w-5 text-green-400" />
+                <p className="text-base font-semibold text-green-400">
+                  Avec 2000 FCFA par an, économisez jusqu'à <span className="text-white font-bold">1.000.000 FCFA</span> par an en gérant mieux vos finances
+                </p>
+              </div>
             </div>
 
             {/* Pricing card */}
