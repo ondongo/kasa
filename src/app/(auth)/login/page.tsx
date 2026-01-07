@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Shield } from 'lucide-react';
+import CodePinInput from '@/components/ui/CodePinInput';
+import { toast } from 'react-toastify';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,9 +18,20 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [householdName, setHouseholdName] = useState('');
+  const [registerPhoneNumber, setRegisterPhoneNumber] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Registration steps: 'form' | 'phone' | 'otp'
+  const [registrationStep, setRegistrationStep] = useState<'form' | 'phone' | 'otp'>('form');
+  
+  // OTP States
+  const [requiresOTP, setRequiresOTP] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,19 +39,114 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      // Étape 1: Vérifier les credentials
       const result = await signIn('credentials', {
         email,
         password,
-        callbackUrl: '/dashboard',
-        redirect: true,
+        redirect: false,
       });
 
       if (result?.error) {
-        setError('Identifiants invalides');
+        toast.error('Identifiants invalides');
+        setLoading(false);
+        return;
+      }
+
+      // Étape 2: Vérifier si l'appareil est de confiance
+      const deviceCheckResponse = await fetch('/api/auth/device/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const deviceCheck = await deviceCheckResponse.json();
+
+      if (deviceCheck.requiresOTP) {
+        // Appareil non reconnu, demander OTP
+        setRequiresOTP(true);
+        setPhoneNumber(deviceCheck.phoneNumber);
+        setLoading(false);
+        
+        // Envoyer automatiquement le code OTP
+        await sendOTP(deviceCheck.phoneNumber);
+      } else {
+        // Appareil de confiance, connexion directe
+        toast.success('Connexion réussie !');
+        window.location.href = '/dashboard';
       }
     } catch (err) {
-      setError('Une erreur est survenue');
-    } finally {
+      toast.error('Une erreur est survenue');
+      setLoading(false);
+    }
+  };
+
+  const sendOTP = async (phone: string) => {
+    try {
+      const response = await fetch('/api/auth/otp/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, phoneNumber: phone }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || 'Erreur lors de l\'envoi du code');
+        return;
+      }
+
+      setOtpSent(true);
+      toast.success(`Code envoyé au ${phone}`);
+    } catch (err) {
+      toast.error('Erreur lors de l\'envoi du code de vérification');
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    if (otpCode.length !== 6) {
+      toast.error('Veuillez entrer un code à 6 chiffres');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/auth/otp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, phoneNumber, code: otpCode }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || 'Code de vérification invalide');
+        setLoading(false);
+        return;
+      }
+
+      // Code validé, appareil ajouté aux appareils de confiance
+      toast.success('Appareil vérifié avec succès !');
+      
+      // Si c'est une inscription, faire le login automatique
+      if (isRegistering) {
+        const result = await signIn('credentials', {
+          email,
+          password,
+          redirect: false,
+        });
+
+        if (result?.error) {
+          toast.error('Appareil vérifié mais erreur de connexion. Veuillez vous connecter.');
+          setLoading(false);
+          return;
+        }
+      }
+      
+      window.location.href = '/dashboard';
+    } catch (err) {
+      toast.error('Une erreur est survenue');
       setLoading(false);
     }
   };
@@ -52,57 +160,214 @@ export default function LoginPage() {
       const response = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name, householdName }),
+        body: JSON.stringify({ 
+          email, 
+          password, 
+          name, 
+          householdName,
+          // Pas de phoneNumber à cette étape
+        }),
       });
 
       if (!response.ok) {
         const data = await response.json();
-        setError(data.error || 'Erreur lors de l\'inscription');
+        toast.error(data.error || 'Erreur lors de l\'inscription');
         setLoading(false);
         return;
       }
 
-      // Auto-login après inscription
-      const result = await signIn('credentials', {
-        email,
-        password,
-        callbackUrl: '/dashboard',
-        redirect: true,
+      // Compte créé, passer à l'étape 2 : demander le phoneNumber
+      toast.success('Compte créé ! Veuillez renseigner votre numéro de téléphone.');
+      setRegistrationStep('phone');
+      setLoading(false);
+    } catch (err) {
+      toast.error('Une erreur est survenue');
+      setLoading(false);
+    }
+  };
+
+  const handlePhoneSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      // Vérifier que le numéro de téléphone est renseigné
+      if (!registerPhoneNumber.trim()) {
+        toast.error('Le numéro de téléphone est requis');
+        setLoading(false);
+        return;
+      }
+
+      // Mettre à jour le user avec le phoneNumber
+      const response = await fetch('/api/auth/update-phone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email,
+          phoneNumber: registerPhoneNumber,
+        }),
       });
 
-      if (result?.error) {
-        setError('Compte créé, mais erreur de connexion. Veuillez vous connecter manuellement.');
+      if (!response.ok) {
+        const data = await response.json();
+        toast.error(data.error || 'Erreur lors de la mise à jour');
+        setLoading(false);
+        return;
       }
+
+      // Passer à l'étape 3 : vérification OTP
+      toast.success('Numéro enregistré ! Envoi du code de vérification...');
+      setIsRegistering(true);
+      setRegistrationStep('otp');
+      setRequiresOTP(true);
+      setPhoneNumber(registerPhoneNumber);
+      setLoading(false);
+      
+      // Envoyer automatiquement le code OTP
+      await sendOTP(registerPhoneNumber);
     } catch (err) {
-      setError('Une erreur est survenue');
-    } finally {
+      toast.error('Une erreur est survenue');
       setLoading(false);
     }
   };
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
-      {/* Image de fond */}
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: 'url(/budget-background.png)' }}
-      />
+      {/* Background avec effet néo harmonisé */}
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        {/* Effets de lumière harmonisés */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#F2C086]/20 rounded-full blur-3xl opacity-30 animate-pulse"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#F2C086]/15 rounded-full blur-3xl opacity-25 animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#F2C086]/10 rounded-full blur-3xl opacity-15"></div>
+        
+        {/* Pattern de grille */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[24px_24px]"></div>
+        
+        {/* Formes flottantes */}
+        <div className="absolute top-20 left-10 w-32 h-32 border-2 border-[#F2C086]/20 rounded-2xl rotate-12 animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-40 h-40 border-2 border-[#F2C086]/20 rounded-full animate-pulse"></div>
+        <div className="absolute top-1/3 right-20 w-24 h-24 border-2 border-[#F2C086]/20 rounded-lg -rotate-12 animate-pulse"></div>
+      </div>
       
-      {/* Overlay sombre pour améliorer la lisibilité */}
-      <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/60 to-black/70" />
+      {/* Logo Kasa en arrière-plan */}
+      <div className="absolute top-8 left-8 flex items-center gap-2 z-10">
+        <div className="w-10 h-10 rounded-xl bg-[#F2C086] flex items-center justify-center font-bold text-[#1a1a1a] text-xl shadow-lg">
+          K
+        </div>
+        <span className="text-2xl font-bold text-white">Kasa</span>
+      </div>
       
       {/* Contenu principal */}
-      <Card className="relative z-10 w-full max-w-md backdrop-blur-sm bg-card/95 shadow-2xl border-white/10">
-        <CardHeader>
-          <CardTitle className="text-2xl">{isLogin ? 'Connexion' : 'Inscription'}</CardTitle>
+      <Card className="relative z-10 w-full max-w-md backdrop-blur-xl bg-white/95 dark:bg-gray-900/95 shadow-2xl border border-white/20 dark:border-gray-700/50">
+        <CardHeader className="space-y-2">
+          <CardTitle className="text-2xl text-gray-900 dark:text-white">
+            {requiresOTP || registrationStep === 'otp' 
+              ? 'Vérification requise' 
+              : registrationStep === 'phone'
+              ? 'Sécurité du compte'
+              : (isLogin ? 'Connexion' : 'Inscription')}
+          </CardTitle>
           <CardDescription>
-            {isLogin
-              ? 'Connectez-vous à votre compte Kasa'
-              : 'Créez votre compte Kasa'}
+            {requiresOTP || registrationStep === 'otp'
+              ? 'Nouvel appareil détecté, veuillez entrer le code envoyé par SMS'
+              : registrationStep === 'phone'
+              ? 'Renseignez votre numéro de téléphone pour sécuriser votre compte'
+              : (isLogin
+                ? 'Connectez-vous à votre compte Kasa'
+                : 'Créez votre compte Kasa')}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={isLogin ? handleLogin : handleRegister} className="space-y-4">
+          {requiresOTP || registrationStep === 'otp' ? (
+            <div className="space-y-6">
+              <div className="rounded-lg bg-[#F2C086]/10 p-4 flex items-start gap-3">
+                <Shield className="h-5 w-5 text-[#F2C086] mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-[#F2C086] mb-1">
+                    Sécurité renforcée
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Un code de vérification a été envoyé au {phoneNumber}. 
+                    Entrez-le ci-dessous pour continuer.
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Code de vérification</Label>
+                <div className="flex justify-center py-4">
+                  <CodePinInput
+                    length={6}
+                    value={otpCode}
+                    onChange={setOtpCode}
+                  />
+                </div>
+              </div>
+
+              {error && <p className="text-sm text-destructive text-center">{error}</p>}
+
+              <div className="space-y-3">
+                <Button
+                  onClick={handleVerifyOTP}
+                  className="w-full"
+                  disabled={loading || otpCode.length !== 6}
+                >
+                  {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Vérifier et continuer
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  onClick={() => sendOTP(phoneNumber)}
+                  className="w-full"
+                  disabled={loading}
+                >
+                  Renvoyer le code
+                </Button>
+
+              </div>
+            </div>
+          ) : registrationStep === 'phone' ? (
+            <form onSubmit={handlePhoneSubmit} className="space-y-4">
+              <div className="rounded-lg bg-primary/10 p-4 flex items-start gap-3">
+                <Shield className="h-5 w-5 text-primary mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-primary mb-1">
+                    Sécurisez votre compte
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Votre numéro permettra de vérifier votre identité lors de connexions depuis de nouveaux appareils.
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="registerPhoneNumber">
+                  Numéro de téléphone
+                </Label>
+                <Input
+                  id="registerPhoneNumber"
+                  type="tel"
+                  placeholder="+33 6 12 34 56 78"
+                  value={registerPhoneNumber}
+                  onChange={(e) => setRegisterPhoneNumber(e.target.value)}
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  Format international recommandé (ex: +33 6 12 34 56 78)
+                </p>
+              </div>
+
+              {error && <p className="text-sm text-destructive">{error}</p>}
+              
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Continuer
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={isLogin ? handleLogin : handleRegister} className="space-y-4">
             {!isLogin && (
               <>
                 <div className="space-y-2">
@@ -170,12 +435,21 @@ export default function LoginPage() {
               {loading ? 'Chargement...' : isLogin ? 'Se connecter' : 'S\'inscrire'}
             </Button>
           </form>
+          )}
         </CardContent>
-        <CardFooter className="flex justify-center">
-          <Button variant="link" onClick={() => setIsLogin(!isLogin)}>
-            {isLogin ? 'Pas de compte ? Inscrivez-vous' : 'Déjà un compte ? Connectez-vous'}
-          </Button>
-        </CardFooter>
+        {!requiresOTP && registrationStep === 'form' && (
+          <CardFooter className="flex justify-center">
+            <Button 
+              variant="link" 
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setRegistrationStep('form');
+              }}
+            >
+              {isLogin ? 'Pas de compte ? Inscrivez-vous' : 'Déjà un compte ? Connectez-vous'}
+            </Button>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );

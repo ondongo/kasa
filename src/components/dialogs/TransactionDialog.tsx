@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { usePreferences } from '@/contexts/PreferencesContext';
 import {
   Dialog,
   DialogContent,
@@ -24,7 +25,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { createTransaction, updateTransaction } from '@/lib/actions/transactions';
-import { eurosToCents, centsToEuros } from '@/lib/money';
+import { unitsToCents, centsToUnits } from '@/lib/money';
 import { Loader2 } from 'lucide-react';
 
 const formSchema = z.object({
@@ -57,8 +58,28 @@ export function TransactionDialog({
   envelopes = [],
   onSuccess,
 }: TransactionDialogProps) {
+  const { preferences } = usePreferences();
+  const currency = preferences?.currency || 'EUR';
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+
+  // Obtenir le symbole de la devise
+  const getCurrencySymbol = (curr: string) => {
+    const symbols: Record<string, string> = {
+      EUR: '€',
+      USD: '$',
+      GBP: '£',
+      CHF: 'CHF',
+      CAD: 'CAD',
+      XAF: 'FCFA',
+      XOF: 'FCFA',
+      CDF: 'FC',
+      GNF: 'FG',
+      MAD: 'MAD',
+      TND: 'TND',
+    };
+    return symbols[curr] || curr;
+  };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -74,9 +95,11 @@ export function TransactionDialog({
 
   useEffect(() => {
     if (transaction) {
+      // Utiliser la devise d'origine de la transaction, ou la devise actuelle si non définie
+      const transactionCurrency = transaction.currency || currency;
       form.reset({
         label: transaction.label,
-        amount: centsToEuros(transaction.amount).toString(),
+        amount: centsToUnits(transaction.amount, transactionCurrency).toString(),
         owner: transaction.owner,
         categoryId: transaction.categoryId || '',
         subcategoryId: transaction.subcategoryId || '',
@@ -94,7 +117,7 @@ export function TransactionDialog({
       });
       setSelectedCategory('');
     }
-  }, [transaction, form]);
+  }, [transaction, form, currency]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setLoading(true);
@@ -103,7 +126,8 @@ export function TransactionDialog({
         type,
         month,
         label: values.label,
-        amount: eurosToCents(parseFloat(values.amount)),
+        amount: unitsToCents(parseFloat(values.amount), currency),
+        currency, // Ajouter la devise de la transaction
         owner: values.owner,
         categoryId: values.categoryId || null,
         subcategoryId: values.subcategoryId || null,
@@ -163,7 +187,7 @@ export function TransactionDialog({
               name="amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Montant (€)</FormLabel>
+                  <FormLabel>Montant ({getCurrencySymbol(currency)})</FormLabel>
                   <FormControl>
                     <Input type="number" step="0.01" placeholder="Ex: 1500" {...field} />
                   </FormControl>

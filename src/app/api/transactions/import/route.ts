@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions, getUserHousehold } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { eurosToCents } from '@/lib/money';
+import { unitsToCents } from '@/lib/money';
 import Papa from 'papaparse';
 
 export async function POST(req: Request) {
@@ -112,7 +112,7 @@ export async function POST(req: Request) {
             type: type as any,
             month: row.Mois,
             label: row.Libellé,
-            amount: eurosToCents(amount),
+            amount: unitsToCents(amount),
             owner: owner as any,
             categoryId,
             subcategoryId,

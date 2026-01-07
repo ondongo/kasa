@@ -1,0 +1,186 @@
+'use client';
+
+import { useState } from 'react';
+import { Users, PiggyBank, TrendingUp, Globe, Shield, Zap } from 'lucide-react';
+import Image from 'next/image';
+
+const features = [
+  {
+    id: 'budget',
+    icon: Users,
+    label: 'Budget en Couple',
+    color: '#F2C086',
+    description: 'Gérez vos finances à deux avec des catégories partagées et un suivi en temps réel.',
+    image: '/images/features/budget-preview.svg',
+  },
+  {
+    id: 'tontines',
+    icon: PiggyBank,
+    label: 'Tontines',
+    color: '#F2C086',
+    description: 'Organisez des tontines collectives, invitez des membres et suivez automatiquement les tours.',
+    image: '/images/features/tontine-preview.svg',
+  },
+  {
+    id: 'investments',
+    icon: TrendingUp,
+    label: 'Investissements',
+    color: '#F2C086',
+    description: 'Suivez l\'évolution de vos placements avec des enveloppes dédiées et des graphiques détaillés.',
+    image: '/images/features/investment-preview.svg',
+  },
+  {
+    id: 'currencies',
+    icon: Globe,
+    label: 'Multi-devises',
+    color: '#F2C086',
+    description: 'EUR, USD, FCFA - Toutes vos transactions converties automatiquement.',
+    image: '/images/features/currency-preview.svg',
+  },
+  {
+    id: 'security',
+    icon: Shield,
+    label: 'Sécurité',
+    color: '#F2C086',
+    description: 'Authentification 2FA, chiffrement bout en bout, appareils de confiance.',
+    image: '/images/features/security-preview.svg',
+  },
+  {
+    id: 'performance',
+    icon: Zap,
+    label: 'Rapidité',
+    color: '#F2C086',
+    description: 'Interface ultra-rapide avec synchronisation en temps réel sur tous vos appareils.',
+    image: '/images/features/performance-preview.svg',
+  },
+];
+
+export function FeatureTabs() {
+  const [activeTab, setActiveTab] = useState('budget');
+
+  const activeFeature = features.find((f) => f.id === activeTab) || features[0];
+  const Icon = activeFeature.icon;
+
+  return (
+    <section className="py-20 md:py-28 bg-transparent">
+      <div className="container mx-auto px-6">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold mb-4 text-gray-800 dark:text-white/90">
+            Découvrez nos fonctionnalités
+          </h2>
+          <p className="text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
+            Tout ce dont vous avez besoin pour gérer vos finances efficacement
+          </p>
+        </div>
+
+        <div className="flex flex-wrap justify-center gap-3 mb-12">
+          {features.map((feature) => {
+            const FeatureIcon = feature.icon;
+            return (
+              <button
+                key={feature.id}
+                onClick={() => setActiveTab(feature.id)}
+                className={`flex items-center gap-2 px-5 py-3 rounded-full font-medium transition-all ${
+                  activeTab === feature.id
+                    ? 'text-white shadow-lg scale-105'
+                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:scale-105'
+                }`}
+                style={{
+                  backgroundColor: activeTab === feature.id ? feature.color : undefined,
+                }}
+              >
+                <FeatureIcon className="h-5 w-5" />
+                <span>{feature.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="max-w-5xl mx-auto">
+          {/* Card avec effet encadré comme dans l'image */}
+          <div className="relative">
+            {/* Gradient border effect */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-[#F2C086]/50 via-[#F2C086]/30 to-[#F2C086]/50 rounded-3xl blur-lg opacity-75"></div>
+            
+            {/* Main card */}
+            <div className="relative bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 md:p-12 border border-gray-700">
+              <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <div
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
+                  style={{
+                    backgroundColor: `${activeFeature.color}20`,
+                    color: activeFeature.color,
+                  }}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="font-semibold">{activeFeature.label}</span>
+                </div>
+                <p className="text-lg text-gray-300 leading-relaxed">
+                  {activeFeature.description}
+                </p>
+                <div className="mt-8 space-y-3">
+                  {['Facile à utiliser', 'Synchronisation temps réel', 'Données sécurisées'].map(
+                    (benefit, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <div
+                          className="w-5 h-5 rounded-full flex items-center justify-center"
+                          style={{ backgroundColor: `${activeFeature.color}30` }}
+                        >
+                          <svg
+                            className="w-3 h-3"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            style={{ color: activeFeature.color }}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={3}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        </div>
+                        <span className="text-gray-300">{benefit}</span>
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+              <div
+                className="relative h-[300px] md:h-[400px] rounded-xl overflow-hidden"
+                style={{
+                  background: `linear-gradient(135deg, ${activeFeature.color}15, ${activeFeature.color}05)`,
+                }}
+              >
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div
+                    className="text-8xl opacity-20"
+                    style={{ color: activeFeature.color }}
+                  >
+                    <Icon className="w-32 h-32" />
+                  </div>
+                </div>
+                <div className="absolute inset-0 backdrop-blur-3xl bg-black/20"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center p-8">
+                    <Icon
+                      className="w-20 h-20 mx-auto mb-4"
+                      style={{ color: activeFeature.color }}
+                    />
+                    <p className="text-2xl font-bold" style={{ color: activeFeature.color }}>
+                      {activeFeature.label}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+

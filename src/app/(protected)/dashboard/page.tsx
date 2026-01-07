@@ -8,9 +8,11 @@ import { DonutChart } from '@/components/charts/DonutChart';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 import { getTransactions } from '@/lib/actions/transactions';
+import { autoGenerateRecurringTransactions } from '@/lib/actions/recurring';
 import { calculateBudgetSummary, buildSankeyData, getCurrentMonth } from '@/lib/calculations';
 import { formatEuros } from '@/lib/money';
 import { useVisibility } from '@/contexts/VisibilityContext';
+import { usePreferences } from '@/contexts/PreferencesContext';
 
 export default function DashboardPage() {
   const [month, setMonth] = useState(getCurrentMonth());
@@ -18,6 +20,8 @@ export default function DashboardPage() {
   const [summary, setSummary] = useState<any>(null);
   const [sankeyData, setSankeyData] = useState<any>({ nodes: [], links: [] });
   const { isHidden } = useVisibility();
+  const { preferences } = usePreferences();
+  const currency = preferences?.currency || 'EUR';
 
   useEffect(() => {
     loadData();
@@ -26,8 +30,11 @@ export default function DashboardPage() {
   async function loadData() {
     setLoading(true);
     try {
+      // Générer automatiquement les transactions récurrentes pour le mois
+      await autoGenerateRecurringTransactions(month);
+      
       const transactions = await getTransactions(month);
-      const budgetSummary = calculateBudgetSummary(transactions);
+      const budgetSummary = calculateBudgetSummary(transactions, currency);
       const sankey = buildSankeyData(transactions);
 
       setSummary(budgetSummary);
@@ -57,6 +64,7 @@ export default function DashboardPage() {
                 savings: summary?.savings || 0,
               }}
               isHidden={isHidden}
+              currency={currency}
             />
 
             {/* Graphiques côte à côte */}
@@ -88,6 +96,7 @@ export default function DashboardPage() {
                         color: '#F2C086',
                       },
                     ]}
+                    currency={currency}
                   />
                 </CardContent>
               </Card>
@@ -105,16 +114,16 @@ export default function DashboardPage() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Taux d'investissement</span>
-                      <span className="text-2xl font-bold text-blue-600">
+                      <span className="text-2xl font-bold text-[#F2C086]">
                         {summary?.savingsRate.toFixed(1)}%
                       </span>
                     </div>
                     <div className="relative h-3 overflow-hidden rounded-full bg-muted">
                       <div
-                        className="absolute inset-y-0 left-0 rounded-full bg-blue-600 transition-all duration-700"
+                        className="absolute inset-y-0 left-0 rounded-full bg-[#F2C086] transition-all duration-700"
                         style={{ width: `${Math.min(summary?.savingsRate || 0, 100)}%` }}
                       >
-                        <div className="absolute inset-0 animate-pulse bg-linear-to-r from-transparent via-white/30 to-transparent" />
+                        <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-white/30 to-transparent" />
                       </div>
                     </div>
                   </div>
@@ -135,7 +144,7 @@ export default function DashboardPage() {
                           backgroundColor: '#F2C086',
                         }}
                       >
-                        <div className="absolute inset-0 animate-pulse bg-linear-to-r from-transparent via-white/30 to-transparent" />
+                        <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-white/30 to-transparent" />
                       </div>
                     </div>
                   </div>

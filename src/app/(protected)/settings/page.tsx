@@ -10,15 +10,27 @@ import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getCategories, createCategory, deleteCategory } from '@/lib/actions/categories';
 import { getEnvelopes, createEnvelope, deleteEnvelope } from '@/lib/actions/envelopes';
+import { getUserPreferences, updateUserPreferences, updateUserProfile } from '@/lib/actions/preferences';
+import { sendCoupleInvitation, getPartner } from '@/lib/actions/couple';
+import { getTrustedDevices, removeTrustedDevice } from '@/lib/actions/devices';
 import { User, Settings as SettingsIcon, Users, Shield, Folder, Plus, Trash2, Mail, Check, Smartphone, Monitor, Tablet } from 'lucide-react';
 import { SettingsSkeleton } from '@/components/skeletons/SettingsSkeleton';
+import { toast } from 'react-toastify';
 
 type SettingsTab = 'profile' | 'preferences' | 'couple' | 'categories' | 'security';
 
 const currencies = [
   { code: 'EUR', symbol: '€', name: 'Euro' },
   { code: 'USD', symbol: '$', name: 'Dollar américain' },
-  { code: 'XAF', symbol: 'FCFA', name: 'Franc CFA' },
+  { code: 'XAF', symbol: 'FCFA', name: 'Franc CFA (CEMAC)' },
+  { code: 'XOF', symbol: 'FCFA', name: 'Franc CFA (UEMOA)' },
+  { code: 'MAD', symbol: 'DH', name: 'Dirham marocain' },
+  { code: 'TND', symbol: 'DT', name: 'Dinar tunisien' },
+  { code: 'GNF', symbol: 'FG', name: 'Franc guinéen' },
+  { code: 'CDF', symbol: 'FC', name: 'Franc congolais' },
+  { code: 'GBP', symbol: '£', name: 'Livre sterling' },
+  { code: 'CHF', symbol: 'CHF', name: 'Franc suisse' },
+  { code: 'CAD', symbol: 'CA$', name: 'Dollar canadien' },
 ];
 
 const languages = [
@@ -67,53 +79,72 @@ export default function SettingsPage() {
   const [newIncomeCategory, setNewIncomeCategory] = useState('');
   const [newEnvelope, setNewEnvelope] = useState('');
 
+  // Sécurité - Changement de mot de passe
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  
+  // Suppression de compte
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+
   // Appareils de confiance
-  const [trustedDevices, setTrustedDevices] = useState([
-    {
-      id: '1',
-      name: 'MacBook Pro',
-      type: 'laptop',
-      lastUsed: '2025-12-25',
-      location: 'Paris, France',
-      current: true,
-    },
-    {
-      id: '2',
-      name: 'iPhone 14',
-      type: 'mobile',
-      lastUsed: '2025-12-24',
-      location: 'Paris, France',
-      current: false,
-    },
-  ]);
+  const [trustedDevices, setTrustedDevices] = useState<any[]>([]);
 
   useEffect(() => {
     loadData();
   }, []);
 
   useEffect(() => {
-    if (session?.user) {
-      setEmail(session.user.email || '');
-      // Simuler les données pour la démo
-      setFirstName('Gloire');
-      setLastName('Ondongo');
-      setPhoneNumber('+33 6 12 34 56 78'); // Exemple
-      setPhoneVerified(false); // À récupérer de la BD
+    async function loadUserProfile() {
+      if (session?.user) {
+        setEmail(session.user.email || '');
+        try {
+          // Charger les données du profil depuis la BD
+          const response = await fetch('/api/user/profile');
+          if (response.ok) {
+            const userData = await response.json();
+            setFirstName(userData.firstName || '');
+            setLastName(userData.lastName || '');
+            setPhoneNumber(userData.phoneNumber || '');
+            setPhoneVerified(!!userData.phoneVerified);
+          }
+        } catch (error) {
+          console.error('Erreur lors du chargement du profil:', error);
+        }
+      }
     }
+    loadUserProfile();
   }, [session]);
 
   async function loadData() {
     setLoading(true);
     try {
-      const [expense, income, env] = await Promise.all([
+      const [expense, income, env, prefs, partner, devices] = await Promise.all([
         getCategories('EXPENSE'),
         getCategories('INCOME'),
         getEnvelopes(),
+        getUserPreferences(),
+        getPartner(),
+        getTrustedDevices(),
       ]);
 
       setExpenseCategories(expense);
       setIncomeCategories(income);
       setEnvelopes(env);
+      setTrustedDevices(devices);
+      
+      // Charger les préférences
+      setCurrency(prefs.currency);
+      setLanguage(prefs.language);
+      setTheme(prefs.theme);
+      
+      // Charger les infos du partenaire
+      if (partner) {
+        setHasPartner(true);
+        setPartnerName(partner.name || `${partner.firstName} ${partner.lastName}`.trim() || partner.email);
+      }
     } catch (error) {
       console.error('Erreur lors du chargement:', error);
     } finally {
@@ -155,40 +186,64 @@ export default function SettingsPage() {
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) return;
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) return;
     try {
       await deleteCategory(id);
+      toast.success('Catégorie supprimée');
       loadData();
     } catch (error) {
       console.error('Erreur:', error);
+      toast.error('Erreur lors de la suppression');
     }
   };
 
   const handleDeleteEnvelope = async (id: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette enveloppe ?')) return;
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette enveloppe ?')) return;
     try {
       await deleteEnvelope(id);
+      toast.success('Enveloppe supprimée');
       loadData();
     } catch (error) {
       console.error('Erreur:', error);
+      toast.error('Erreur lors de la suppression');
     }
   };
 
-  const handleInvitePartner = () => {
-    // TODO: Implémenter l'invitation par email
-    setInvitationSent(true);
-    setTimeout(() => setInvitationSent(false), 3000);
+  const handleInvitePartner = async () => {
+    if (!partnerEmail.trim()) return;
+    
+    try {
+      await sendCoupleInvitation(partnerEmail);
+      setInvitationSent(true);
+      toast.success('Invitation envoyée !');
+      setTimeout(() => {
+        setInvitationSent(false);
+        setPartnerEmail('');
+      }, 3000);
+    } catch (error: any) {
+      toast.error(error.message || 'Erreur lors de l\'envoi de l\'invitation');
+    }
   };
 
-  const handleSaveProfile = () => {
-    // TODO: Implémenter la sauvegarde du profil
-    alert('Profil sauvegardé !');
+  const handleSaveProfile = async () => {
+    try {
+      await updateUserProfile({
+        firstName,
+        lastName,
+        name: `${firstName} ${lastName}`.trim(),
+        phoneNumber,
+      });
+      toast.success('Profil sauvegardé avec succès !');
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+      toast.error('Erreur lors de la sauvegarde du profil');
+    }
   };
 
   const handleSendVerificationCode = () => {
     // TODO: Implémenter l'envoi du code de vérification
     setShowVerificationInput(true);
-    alert('Code de vérification envoyé par SMS !');
+    toast.success('Code de vérification envoyé par SMS !');
   };
 
   const handleVerifyPhone = () => {
@@ -196,20 +251,114 @@ export default function SettingsPage() {
     if (verificationCode === '123456') { // Exemple de code
       setPhoneVerified(true);
       setShowVerificationInput(false);
-      alert('Numéro de téléphone vérifié !');
+      toast.success('Numéro de téléphone vérifié !');
     } else {
-      alert('Code incorrect');
+      toast.error('Code incorrect');
     }
   };
 
-  const handleSavePreferences = () => {
-    // TODO: Implémenter la sauvegarde des préférences
-    alert('Préférences sauvegardées !');
+  const handleSavePreferences = async () => {
+    try {
+      await updateUserPreferences({
+        currency,
+        language,
+        theme,
+      });
+      toast.success('Préférences sauvegardées avec succès !');
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+      toast.error('Erreur lors de la sauvegarde des préférences');
+    }
   };
 
-  const handleRemoveDevice = (deviceId: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cet appareil ?')) return;
-    setTrustedDevices(trustedDevices.filter((d) => d.id !== deviceId));
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error('Veuillez remplir tous les champs');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error('Les mots de passe ne correspondent pas');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error('Le nouveau mot de passe doit contenir au moins 6 caractères');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/user/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || 'Erreur lors du changement de mot de passe');
+        return;
+      }
+
+      toast.success('Mot de passe changé avec succès !');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error) {
+      console.error('Erreur:', error);
+      toast.error('Erreur lors du changement de mot de passe');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmation !== 'SUPPRIMER') {
+      toast.error('Veuillez taper "SUPPRIMER" pour confirmer');
+      return;
+    }
+
+    if (!deletePassword) {
+      toast.error('Veuillez entrer votre mot de passe');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/user/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          password: deletePassword,
+          confirmation: deleteConfirmation,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || 'Erreur lors de la suppression du compte');
+        return;
+      }
+
+      toast.success('Compte supprimé avec succès. Vous allez être déconnecté.');
+      // Déconnexion et redirection
+      setTimeout(() => {
+        window.location.href = '/api/auth/signout';
+      }, 2000);
+    } catch (error) {
+      console.error('Erreur:', error);
+      toast.error('Erreur lors de la suppression du compte');
+    }
+  };
+
+  const handleRemoveDevice = async (deviceId: string) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet appareil ?')) return;
+    try {
+      await removeTrustedDevice(deviceId);
+      toast.success('Appareil supprimé');
+      loadData(); // Recharger la liste
+    } catch (error: any) {
+      toast.error(error.message || 'Erreur lors de la suppression de l\'appareil');
+    }
   };
 
   const getDeviceIcon = (type: string) => {
@@ -499,8 +648,8 @@ export default function SettingsPage() {
                       )}
                     </div>
 
-                    <div className="rounded-lg bg-blue-500/10 p-4">
-                      <h4 className="mb-2 font-semibold text-blue-600">Avantages du mode couple</h4>
+                    <div className="rounded-lg bg-[#F2C086]/10 p-4">
+                      <h4 className="mb-2 font-semibold text-[#F2C086]">Avantages du mode couple</h4>
                       <ul className="space-y-1 text-sm text-muted-foreground">
                         <li>• Partagez vos revenus et dépenses</li>
                         <li>• Vue consolidée du budget du foyer</li>
@@ -670,17 +819,34 @@ export default function SettingsPage() {
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="currentPassword">Mot de passe actuel</Label>
-                    <Input id="currentPassword" type="password" />
+                    <Input
+                      id="currentPassword"
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="newPassword">Nouveau mot de passe</Label>
-                    <Input id="newPassword" type="password" />
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
-                    <Input id="confirmPassword" type="password" />
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
                   </div>
-                  <Button className="w-full">Changer le mot de passe</Button>
+                  <Button className="w-full" onClick={handleChangePassword}>
+                    Changer le mot de passe
+                  </Button>
                 </CardContent>
               </Card>
 
@@ -692,33 +858,34 @@ export default function SettingsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {trustedDevices.map((device) => {
-                    const DeviceIcon = getDeviceIcon(device.type);
-                    return (
-                      <div
-                        key={device.id}
-                        className="flex items-center justify-between rounded-lg border p-4"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                            <DeviceIcon className="h-6 w-6 text-primary" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <p className="font-semibold">{device.name}</p>
-                              {device.current && (
-                                <span className="rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600">
-                                  Appareil actuel
-                                </span>
+                  {trustedDevices.length === 0 ? (
+                    <p className="text-center text-sm text-muted-foreground">
+                      Aucun appareil de confiance enregistré
+                    </p>
+                  ) : (
+                    trustedDevices.map((device) => {
+                      const DeviceIcon = getDeviceIcon(device.deviceType);
+                      return (
+                        <div
+                          key={device.id}
+                          className="flex items-center justify-between rounded-lg border p-4"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                              <DeviceIcon className="h-6 w-6 text-primary" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <p className="font-semibold">{device.name}</p>
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                Dernière utilisation : {new Date(device.lastUsedAt).toLocaleDateString('fr-FR')}
+                              </p>
+                              {device.location && (
+                                <p className="text-xs text-muted-foreground">{device.location}</p>
                               )}
                             </div>
-                            <p className="text-sm text-muted-foreground">
-                              Dernière utilisation : {new Date(device.lastUsed).toLocaleDateString('fr-FR')}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{device.location}</p>
                           </div>
-                        </div>
-                        {!device.current && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -726,12 +893,12 @@ export default function SettingsPage() {
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
-                        )}
-                      </div>
-                    );
-                  })}
+                        </div>
+                      );
+                    })
+                  )}
                   
-                  <div className="rounded-lg bg-blue-500/10 p-4">
+                  <div className="rounded-lg bg-[#F2C086]/10 p-4">
                     <p className="text-sm text-muted-foreground">
                       💡 Si vous ne reconnaissez pas un appareil, supprimez-le immédiatement et changez votre mot de passe.
                     </p>
@@ -748,7 +915,54 @@ export default function SettingsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button variant="destructive">Je veux supprimer mon compte</Button>
+                  {!showDeleteDialog ? (
+                    <Button variant="destructive" onClick={() => setShowDeleteDialog(true)}>
+                      Je veux supprimer mon compte
+                    </Button>
+                  ) : (
+                    <div className="space-y-4 rounded-lg border-2 border-red-500 bg-red-500/10 p-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="deleteConfirmation">
+                          Tapez "SUPPRIMER" pour confirmer
+                        </Label>
+                        <Input
+                          id="deleteConfirmation"
+                          value={deleteConfirmation}
+                          onChange={(e) => setDeleteConfirmation(e.target.value)}
+                          placeholder="SUPPRIMER"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="deletePassword">Mot de passe</Label>
+                        <Input
+                          id="deletePassword"
+                          type="password"
+                          value={deletePassword}
+                          onChange={(e) => setDeletePassword(e.target.value)}
+                          placeholder="Votre mot de passe"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setShowDeleteDialog(false);
+                            setDeletePassword('');
+                            setDeleteConfirmation('');
+                          }}
+                        >
+                          Annuler
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={handleDeleteAccount}
+                          disabled={deleteConfirmation !== 'SUPPRIMER' || !deletePassword}
+                        >
+                          Supprimer définitivement
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </>

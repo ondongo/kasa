@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { randomBytes } from 'crypto';
+import { sendEmail, getInvitationEmailTemplate } from '@/lib/email';
 
 export async function sendCoupleInvitation(receiverEmail: string) {
   const session = await getServerSession(authOptions);
@@ -73,8 +74,23 @@ export async function sendCoupleInvitation(receiverEmail: string) {
     },
   });
 
-  // TODO: Envoyer l'email avec le lien d'invitation
-  // const invitationLink = `${process.env.NEXTAUTH_URL}/invite/${token}`;
+  // Envoyer l'email avec le lien d'invitation
+  const invitationLink = `${process.env.NEXTAUTH_URL}/invite/${token}`;
+  
+  try {
+    await sendEmail({
+      to: receiverEmail,
+      subject: `${sender.name || 'Un utilisateur'} vous invite à gérer votre budget sur Kasa`,
+      html: getInvitationEmailTemplate({
+        senderName: sender.name || sender.email,
+        recipientEmail: receiverEmail,
+        invitationUrl: invitationLink,
+      }),
+    });
+  } catch (emailError) {
+    console.error('Erreur lors de l\'envoi de l\'email:', emailError);
+    // On continue même si l'email ne part pas (l'invitation est créée)
+  }
 
   return invitation;
 }

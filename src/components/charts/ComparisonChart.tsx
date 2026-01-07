@@ -11,9 +11,10 @@ interface ComparisonChartProps {
     savings: number;
   };
   isHidden?: boolean;
+  currency?: string;
 }
 
-export function ComparisonChart({ current, isHidden = false }: ComparisonChartProps) {
+export function ComparisonChart({ current, isHidden = false, currency = 'EUR' }: ComparisonChartProps) {
   const total = current.income;
   const expenseRate = total > 0 ? (current.expenses / total) * 100 : 0;
   const investmentRate = total > 0 ? (current.investments / total) * 100 : 0;
@@ -76,7 +77,7 @@ export function ComparisonChart({ current, isHidden = false }: ComparisonChartPr
                     {item.label}
                   </p>
                   <p className="text-3xl font-bold tabular-nums" style={{ color: item.color }}>
-                    {formatEurosWithVisibility(item.value, isHidden)}
+                    {formatEurosWithVisibility(item.value, isHidden, currency)}
                   </p>
                 </div>
                 <div

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutGrid, TrendingUp, TrendingDown, Wallet, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { LayoutGrid, TrendingUp, TrendingDown, Wallet, Settings, LogOut, ChevronDown, Crown, Users } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -20,6 +20,8 @@ const navigation = [
       { name: 'Investissements', href: '/investments' },
     ]
   },
+  { name: 'Tontines', href: '/tontines', icon: Users },
+  { name: 'Abonnement', href: '/pricing', icon: Crown },
   { name: 'Paramètres', href: '/settings', icon: Settings },
 ];
 
@@ -30,7 +32,7 @@ export function Sidebar() {
   return (
     <div className="relative flex h-screen w-64 flex-col bg-[#1a1a1a] text-gray-300">
       {/* Gradient background vers le haut */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-linear-to-b from-[#2a2a2a] to-transparent opacity-50" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#2a2a2a] to-transparent opacity-50" />
       
       {/* Logo */}
       <div className="relative z-10 flex h-20 items-center px-6">

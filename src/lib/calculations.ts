@@ -1,3 +1,6 @@
+import { convertCurrency } from './currency-converter';
+import { centsToUnits, unitsToCents } from './money';
+
 export interface BudgetSummary {
   totalIncome: number;
   totalExpense: number;
@@ -7,14 +10,31 @@ export interface BudgetSummary {
   globalSavingsRate: number; // (Income - Expense) / Income
 }
 
-export function calculateBudgetSummary(transactions: any[]): BudgetSummary {
+/**
+ * Calculer le sommaire du budget avec conversion de devises
+ * @param transactions - Liste des transactions
+ * @param targetCurrency - Devise cible pour les totaux (défaut: EUR)
+ * @returns Sommaire avec montants convertis dans la devise cible
+ */
+export function calculateBudgetSummary(transactions: any[], targetCurrency: string = 'EUR'): BudgetSummary {
   const incomes = transactions.filter((t) => t.type === 'INCOME');
   const expenses = transactions.filter((t) => t.type === 'EXPENSE');
   const investments = transactions.filter((t) => t.type === 'INVESTMENT');
 
-  const totalIncome = incomes.reduce((sum, t) => sum + t.amount, 0);
-  const totalExpense = expenses.reduce((sum, t) => sum + t.amount, 0);
-  const totalInvestment = investments.reduce((sum, t) => sum + t.amount, 0);
+  // Fonction helper pour convertir et sommer
+  const sumWithConversion = (items: any[]) => {
+    return items.reduce((sum, t) => {
+      const sourceCurrency = t.currency || 'EUR';
+      const sourceUnits = centsToUnits(t.amount, sourceCurrency);
+      const targetUnits = convertCurrency(sourceUnits, sourceCurrency, targetCurrency);
+      const targetCents = unitsToCents(targetUnits, targetCurrency);
+      return sum + targetCents;
+    }, 0);
+  };
+
+  const totalIncome = sumWithConversion(incomes);
+  const totalExpense = sumWithConversion(expenses);
+  const totalInvestment = sumWithConversion(investments);
 
   const savings = totalIncome - totalExpense - totalInvestment;
   const savingsRate = totalIncome > 0 ? (totalInvestment / totalIncome) * 100 : 0;

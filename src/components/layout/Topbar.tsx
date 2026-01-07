@@ -1,10 +1,14 @@
 'use client';
 
 import { MonthPicker } from './MonthPicker';
+import { NotificationPanel } from './NotificationPanel';
 import { formatEurosWithVisibility } from '@/lib/money';
 import { Share2, Download, EyeOff, Eye, Bell } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useVisibility } from '@/contexts/VisibilityContext';
+import { usePreferences } from '@/contexts/PreferencesContext';
+import { getUnreadCount } from '@/lib/actions/notifications';
+import { toast } from 'react-toastify';
 
 interface TopbarProps {
   month: string;
@@ -17,10 +21,26 @@ interface TopbarProps {
 }
 
 export function Topbar({ month, onMonthChange, summary }: TopbarProps) {
-  const [notificationCount] = useState(3);
+  const [notificationCount, setNotificationCount] = useState(0);
   const { isHidden, toggleVisibility } = useVisibility();
+  const { preferences } = usePreferences();
   const [showNotifications, setShowNotifications] = useState(false);
   const notificationsRef = useRef<HTMLDivElement>(null);
+
+  const currency = preferences?.currency || 'EUR';
+
+  useEffect(() => {
+    loadNotificationCount();
+  }, []);
+
+  async function loadNotificationCount() {
+    try {
+      const count = await getUnreadCount();
+      setNotificationCount(count);
+    } catch (error) {
+      console.error('Erreur lors du chargement du compteur:', error);
+    }
+  }
 
   // Fermer le panneau de notifications quand on clique en dehors
   useEffect(() => {
@@ -56,13 +76,14 @@ export function Topbar({ month, onMonthChange, summary }: TopbarProps) {
     } else {
       // Fallback: copier dans le presse-papier
       navigator.clipboard.writeText(window.location.href);
-      alert('Lien copié dans le presse-papier !');
+      toast.success('Lien copié dans le presse-papier !');
     }
   };
 
   const handleDownloadPDF = () => {
-    // TODO: Implémenter la génération de PDF
-    alert('Téléchargement du PDF... (fonctionnalité à venir)');
+    // Ouvrir le rapport dans un nouvel onglet pour impression/téléchargement PDF
+    const url = `/api/reports/pdf?month=${month}`;
+    window.open(url, '_blank');
   };
 
   const toggleNotifications = () => {
@@ -83,7 +104,7 @@ export function Topbar({ month, onMonthChange, summary }: TopbarProps) {
                 Revenus
               </p>
               <p className="text-md font-semibold tabular-nums text-emerald-500">
-                {formatEurosWithVisibility(summary.totalIncome, isHidden)}
+                {formatEurosWithVisibility(summary.totalIncome, isHidden, currency)}
               </p>
             </div>
             <div className="text-right">
@@ -91,7 +112,7 @@ export function Topbar({ month, onMonthChange, summary }: TopbarProps) {
                 Dépenses
               </p>
               <p className="text-md font-semibold tabular-nums text-rose-500">
-                {formatEurosWithVisibility(summary.totalExpense, isHidden)}
+                {formatEurosWithVisibility(summary.totalExpense, isHidden, currency)}
               </p>
             </div>
             <div className="text-right">
@@ -99,7 +120,7 @@ export function Topbar({ month, onMonthChange, summary }: TopbarProps) {
                 Investissements
               </p>
               <p className="text-md font-semibold tabular-nums text-blue-500">
-                {formatEurosWithVisibility(summary.totalInvestment, isHidden)}
+                {formatEurosWithVisibility(summary.totalInvestment, isHidden, currency)}
               </p>
             </div>
           </div>
@@ -157,39 +178,9 @@ export function Topbar({ month, onMonthChange, summary }: TopbarProps) {
       {showNotifications && (
         <div
           ref={notificationsRef}
-          className="absolute right-6 top-16 z-50 w-80 rounded-lg border bg-card shadow-lg"
+          className="absolute right-6 top-16 z-50"
         >
-          <div className="border-b p-4">
-            <h3 className="font-semibold">Notifications</h3>
-          </div>
-          <div className="max-h-96 overflow-y-auto">
-            <div className="border-b p-4 hover:bg-accent">
-              <p className="text-sm font-medium">Nouvelle transaction</p>
-              <p className="text-xs text-muted-foreground">
-                Une dépense de 45,00 € a été ajoutée
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">Il y a 2 heures</p>
-            </div>
-            <div className="border-b p-4 hover:bg-accent">
-              <p className="text-sm font-medium">Budget dépassé</p>
-              <p className="text-xs text-muted-foreground">
-                Votre budget alimentation a été dépassé de 120 €
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">Hier</p>
-            </div>
-            <div className="p-4 hover:bg-accent">
-              <p className="text-sm font-medium">Rappel</p>
-              <p className="text-xs text-muted-foreground">
-                Pensez à ajouter vos transactions de la semaine
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">Il y a 3 jours</p>
-            </div>
-          </div>
-          <div className="border-t p-3 text-center">
-            <button className="text-sm text-primary hover:underline">
-              Voir toutes les notifications
-            </button>
-          </div>
+          <NotificationPanel onClose={() => setShowNotifications(false)} />
         </div>
       )}
     </div>

@@ -32,6 +32,12 @@ model User {
   trustedDevices       TrustedDevice[]
   sentInvitations      CoupleInvitation[] @relation("InvitationSender")
   receivedInvitations  CoupleInvitation[] @relation("InvitationReceiver")
+  notifications        Notification[]
+  subscription         Subscription?
+  payments             Payment[]
+  tontines             Tontine[]
+  tontineMembers       TontineMember[]
+  tontineContributions TontineContribution[]
 
   @@map("users")
 }
@@ -48,6 +54,50 @@ model UserPreferences {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_preferences")
+}
+
+enum SubscriptionStatus {
+  TRIAL       // Essai gratuit (30 jours)
+  ACTIVE      // Abonnement actif
+  EXPIRED     // Abonnement expiré
+  CANCELLED   // Abonnement annulé
+}
+
+model Subscription {
+  id                String             @id @default(cuid())
+  userId            String             @unique
+  status            SubscriptionStatus @default(TRIAL)
+  startDate         DateTime           @default(now())
+  endDate           DateTime?          // Date de fin d'abonnement
+  trialEndsAt       DateTime?          // Date de fin d'essai
+  paydunya_token    String?            // Token de transaction PayDunya
+  paydunya_status   String?            // Statut du paiement PayDunya
+  amount            Int                @default(2000) // 2000 FCFA
+  currency          String             @default("XOF") // FCFA
+  lastPaymentDate   DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model Payment {
+  id                String   @id @default(cuid())
+  userId            String
+  amount            Int      // Montant en FCFA
+  currency          String   @default("XOF")
+  status            String   // pending, completed, failed
+  paydunya_token    String   @unique
+  paydunya_status   String?
+  method            String?  // orange_money, mtn_money, moov_money, etc.
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
 }
 
 model TrustedDevice {
@@ -189,7 +239,8 @@ model Transaction {
   type        TransactionType
   month       String // Format: "YYYY-MM"
   label       String
-  amount      Int // En centimes
+  amount      Int // En centimes (ou unités pour devises sans centimes)
+  currency    String          @default("EUR") // Devise de la transaction
   owner       Owner           @default(SHARED)
 
   categoryId           String?
@@ -289,4 +340,144 @@ model RecurringTemplate {
 
   @@index([householdId])
   @@map("recurring_templates")
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType @default(INFO)
+  title     String
+  message   String           @db.Text
+  read      Boolean          @default(false)
+  actionUrl String?
+  createdAt DateTime         @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@map("notifications")
+}
+
+// ========== TONTINE MODELS ==========
+
+enum TontineStatus {
+  DRAFT       // En préparation
+  ACTIVE      // En cours
+  COMPLETED   // Terminée
+  CANCELLED   // Annulée
+}
+
+enum TontineFrequency {
+  WEEKLY      // Hebdomadaire
+  BIWEEKLY    // Toutes les 2 semaines
+  MONTHLY     // Mensuel
+  CUSTOM      // Personnalisé
+}
+
+model Tontine {
+  id          String           @id @default(cuid())
+  name        String
+  description String?          @db.Text
+  creatorId   String
+  amount      Int              // Montant de la contribution en centimes
+  currency    String           @default("XOF") // FCFA par défaut
+  frequency   TontineFrequency @default(MONTHLY)
+  status      TontineStatus    @default(DRAFT)
+  startDate   DateTime?        // Date de début
+  endDate     DateTime?        // Date de fin estimée
+  inviteCode  String           @unique // Code pour rejoindre la tontine
+  maxMembers  Int              @default(10) // Nombre maximum de membres
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  creator       User                  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  members       TontineMember[]
+  rounds        TontineRound[]
+  contributions TontineContribution[]
+
+  @@map("tontines")
+}
+
+enum TontineMemberStatus {
+  PENDING   // Invitation en attente
+  ACTIVE    // Membre actif
+  INACTIVE  // Membre inactif
+  REMOVED   // Membre retiré
+}
+
+model TontineMember {
+  id         String              @id @default(cuid())
+  tontineId  String
+  userId     String
+  status     TontineMemberStatus @default(PENDING)
+  turnOrder  Int?                // Ordre de passage pour recevoir l'argent
+  hasReceived Boolean            @default(false) // A déjà reçu la cagnotte
+  joinedAt   DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  tontine       Tontine               @relation(fields: [tontineId], references: [id], onDelete: Cascade)
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contributions TontineContribution[]
+
+  @@unique([tontineId, userId])
+  @@index([tontineId, status])
+  @@map("tontine_members")
+}
+
+model TontineRound {
+  id            String    @id @default(cuid())
+  tontineId     String
+  roundNumber   Int       // Numéro du tour
+  recipientId   String?   // ID du membre qui reçoit ce tour
+  dueDate       DateTime  // Date limite de contribution
+  amount        Int       // Montant total à collecter
+  collectedAmount Int     @default(0) // Montant collecté
+  isPaid        Boolean   @default(false) // L'argent a été versé au bénéficiaire
+  paidAt        DateTime? // Date de versement
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  tontine       Tontine               @relation(fields: [tontineId], references: [id], onDelete: Cascade)
+  contributions TontineContribution[]
+
+  @@unique([tontineId, roundNumber])
+  @@index([tontineId, dueDate])
+  @@map("tontine_rounds")
+}
+
+enum ContributionStatus {
+  PENDING   // En attente
+  PAID      // Payée
+  LATE      // En retard
+  MISSED    // Manquée
+}
+
+model TontineContribution {
+  id        String             @id @default(cuid())
+  tontineId String
+  roundId   String
+  memberId  String
+  userId    String
+  amount    Int                // Montant de la contribution
+  status    ContributionStatus @default(PENDING)
+  paidAt    DateTime?          // Date de paiement
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  tontine Tontine       @relation(fields: [tontineId], references: [id], onDelete: Cascade)
+  round   TontineRound  @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  member  TontineMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roundId, memberId])
+  @@index([tontineId, userId])
+  @@index([roundId, status])
+  @@map("tontine_contributions")
 }

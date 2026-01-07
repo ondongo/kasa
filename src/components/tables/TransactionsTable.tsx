@@ -4,28 +4,32 @@ import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { formatEuros } from '@/lib/money';
+import { formatMoneyWithConversion } from '@/lib/money';
 import { Pencil, Trash2 } from 'lucide-react';
 import { deleteTransaction } from '@/lib/actions/transactions';
+import { toast } from 'react-toastify';
 
 interface TransactionsTableProps {
   transactions: any[];
   onEdit: (transaction: any) => void;
   onDelete?: () => void;
+  currency?: string;
 }
 
-export function TransactionsTable({ transactions, onEdit, onDelete }: TransactionsTableProps) {
+export function TransactionsTable({ transactions, onEdit, onDelete, currency = 'EUR' }: TransactionsTableProps) {
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette transaction ?')) return;
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette transaction ?')) return;
 
     setDeleting(id);
     try {
       await deleteTransaction(id);
+      toast.success('Transaction supprimée');
       onDelete?.();
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
+      toast.error('Erreur lors de la suppression');
     } finally {
       setDeleting(null);
     }
@@ -68,7 +72,13 @@ export function TransactionsTable({ transactions, onEdit, onDelete }: Transactio
           {transactions.map((transaction) => (
             <TableRow key={transaction.id}>
               <TableCell className="font-medium">{transaction.label}</TableCell>
-              <TableCell>{formatEuros(transaction.amount)}</TableCell>
+              <TableCell>
+                {formatMoneyWithConversion(
+                  transaction.amount,
+                  transaction.currency || 'EUR',
+                  currency
+                )}
+              </TableCell>
               <TableCell>
                 <Badge variant="outline">{getOwnerLabel(transaction.owner)}</Badge>
               </TableCell>

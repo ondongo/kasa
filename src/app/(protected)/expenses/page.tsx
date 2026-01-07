@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getTransactions } from '@/lib/actions/transactions';
 import { getCategories } from '@/lib/actions/categories';
 import { calculateBudgetSummary, getCurrentMonth } from '@/lib/calculations';
+import { usePreferences } from '@/contexts/PreferencesContext';
 import { Plus } from 'lucide-react';
 
 export default function ExpensesPage() {
@@ -20,6 +21,8 @@ export default function ExpensesPage() {
   const [summary, setSummary] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
+  const { preferences } = usePreferences();
+  const currency = preferences?.currency || 'EUR';
 
   useEffect(() => {
     loadData();
@@ -37,7 +40,7 @@ export default function ExpensesPage() {
       setTransactions(expenses);
       setCategories(expenseCategories);
 
-      const budgetSummary = calculateBudgetSummary(allTransactions);
+      const budgetSummary = calculateBudgetSummary(allTransactions, currency);
       setSummary(budgetSummary);
     } catch (error) {
       console.error('Erreur lors du chargement:', error);
@@ -87,6 +90,7 @@ export default function ExpensesPage() {
                   transactions={transactions}
                   onEdit={handleEdit}
                   onDelete={loadData}
+                  currency={currency}
                 />
               </CardContent>
             </Card>

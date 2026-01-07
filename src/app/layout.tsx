@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Montserrat } from 'next/font/google';
 import './globals.css';
+import ToastProvider from '@/components/providers/ToastProvider';
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -20,7 +21,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className="dark">
-      <body className={`${montserrat.variable} font-sans antialiased`}>{children}</body>
+      <body className={`${montserrat.variable} font-sans antialiased`}>
+        {children}
+        <ToastProvider />
+      </body>
     </html>
   );
 }

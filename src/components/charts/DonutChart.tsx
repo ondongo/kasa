@@ -12,9 +12,10 @@ interface DonutChartProps {
     color: string;
   }[];
   size?: number;
+  currency?: string;
 }
 
-export function DonutChart({ data, size = 300 }: DonutChartProps) {
+export function DonutChart({ data, size = 300, currency = 'EUR' }: DonutChartProps) {
   const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
@@ -70,7 +71,7 @@ export function DonutChart({ data, size = 300 }: DonutChartProps) {
       });
 
     // Ajouter les tooltips
-    arcs.append('title').text((d) => `${d.data.label}\n${formatEuros(d.data.value)}`);
+    arcs.append('title').text((d) => `${d.data.label}\n${formatEuros(d.data.value, currency)}`);
 
     // Ajouter le total au centre
     const total = data.reduce((sum, d) => sum + d.value, 0);
@@ -79,14 +80,14 @@ export function DonutChart({ data, size = 300 }: DonutChartProps) {
       .attr('text-anchor', 'middle')
       .attr('dy', '-0.5em')
       .attr('class', 'text-2xl font-bold fill-current')
-      .text(formatEuros(total));
+      .text(formatEuros(total, currency));
 
     g.append('text')
       .attr('text-anchor', 'middle')
       .attr('dy', '1.2em')
       .attr('class', 'text-sm fill-muted-foreground')
       .text('Total');
-  }, [data, size]);
+  }, [data, size, currency]);
 
   if (!data.length) {
     return (
@@ -110,7 +111,7 @@ export function DonutChart({ data, size = 300 }: DonutChartProps) {
             />
             <span className="text-sm font-medium">{item.label}</span>
             <span className="text-sm text-muted-foreground">
-              {formatEuros(item.value)}
+              {formatEuros(item.value, currency)}
             </span>
           </div>
         ))}

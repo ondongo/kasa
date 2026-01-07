@@ -6,11 +6,18 @@ import { RegisterSchema } from '@/lib/zod-schemas';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const validated = RegisterSchema.parse(body);
+    const { email, password, name, householdName, phoneNumber } = body;
+
+    if (!email || !password || !name || !householdName) {
+      return NextResponse.json(
+        { error: 'Email, mot de passe, nom et nom du foyer sont requis' },
+        { status: 400 }
+      );
+    }
 
     // Vérifier si l'utilisateur existe déjà
     const existingUser = await prisma.user.findUnique({
-      where: { email: validated.email },
+      where: { email },
     });
 
     if (existingUser) {
@@ -18,21 +25,32 @@ export async function POST(req: Request) {
     }
 
     // Hasher le mot de passe
-    const hashedPassword = await bcrypt.hash(validated.password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Créer l'utilisateur et le household en une transaction
+    // Créer l'utilisateur, household et préférences en une transaction
     const result = await prisma.$transaction(async (tx: any) => {
       const user = await tx.user.create({
         data: {
-          email: validated.email,
-          name: validated.name,
+          email,
+          name,
           password: hashedPassword,
+          phoneNumber: phoneNumber || null,
+        },
+      });
+
+      // Créer les préférences par défaut
+      await tx.userPreferences.create({
+        data: {
+          userId: user.id,
+          currency: 'EUR',
+          language: 'fr',
+          theme: 'dark',
         },
       });
 
       const household = await tx.household.create({
         data: {
-          name: validated.householdName,
+          name: householdName,
         },
       });
 
@@ -41,7 +59,7 @@ export async function POST(req: Request) {
           userId: user.id,
           householdId: household.id,
           role: 'OWNER',
-          partnerName: validated.name,
+          partnerName: name,
         },
       });
 
