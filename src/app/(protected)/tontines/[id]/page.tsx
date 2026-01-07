@@ -281,6 +281,11 @@ export default function TontineDetailPage() {
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {contributionStatusLabels[contribution.status]}
+                              {contribution.paidAt && (
+                                <span className="ml-1">
+                                  • {new Date(contribution.paidAt).toLocaleDateString('fr-FR')}
+                                </span>
+                              )}
                             </p>
                           </div>
                         </div>
@@ -288,11 +293,35 @@ export default function TontineDetailPage() {
                           <span className="font-semibold">
                             {formatMoney(contribution.amount, tontine.currency)}
                           </span>
-                          {contribution.status === 'PAID' && (
+                          {contribution.status === 'PAID' ? (
                             <CheckCircle2 className="h-4 w-4 text-green-600" />
-                          )}
-                          {contribution.status === 'PENDING' && (
-                            <Clock className="h-4 w-4 text-amber-600" />
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={async () => {
+                                try {
+                                  const response = await fetch(
+                                    `/api/tontines/${tontine.id}/contributions/${contribution.id}`,
+                                    {
+                                      method: 'PATCH',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ status: 'PAID' }),
+                                    }
+                                  );
+                                  if (!response.ok) {
+                                    throw new Error('Erreur lors de la mise à jour');
+                                  }
+                                  toast.success('Contribution marquée comme payée');
+                                  loadTontine();
+                                } catch (error) {
+                                  toast.error('Erreur lors de la mise à jour');
+                                }
+                              }}
+                              className="h-7 text-xs"
+                            >
+                              Marquer payé
+                            </Button>
                           )}
                         </div>
                       </div>
