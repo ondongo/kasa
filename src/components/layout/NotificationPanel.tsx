@@ -149,12 +149,14 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
             {notifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`relative flex gap-0 hover:bg-muted/50 transition-colors rounded-xl overflow-hidden ${
+                className={`relative flex gap-3 hover:bg-muted/50 transition-colors rounded-xl ${
                   !notification.read ? 'bg-primary/5' : 'bg-card'
                 }`}
               >
-                {/* Barre latérale arrondie */}
-                <div className={`w-1.5 ${getSidebarColor(notification.type)} rounded-l-xl`} />
+                {/* Cercle arrondi sur le côté gauche */}
+                <div className="flex items-center justify-center flex-shrink-0 pl-4 py-4">
+                  <div className={`w-4 h-4 ${getSidebarColor(notification.type)} rounded-full`} />
+                </div>
                 
                 <div className="flex gap-3 p-4 flex-1">
                   <div className={`flex-shrink-0 rounded-lg p-2 ${getColor(notification.type)}`}>
