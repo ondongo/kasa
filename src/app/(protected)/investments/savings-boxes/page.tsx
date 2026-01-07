@@ -9,12 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { SavingsBoxDialog } from '@/components/dialogs/SavingsBoxDialog';
-import { calculateBudgetSummary, getCurrentMonth } from '@/lib/calculations';
+import { SavingsBoxesSkeleton } from '@/components/skeletons/SavingsBoxesSkeleton';
+import { getCurrentMonth } from '@/lib/calculations';
 import { usePreferences } from '@/contexts/PreferencesContext';
 import { formatMoney } from '@/lib/money';
 import { Plus, Trash2, Edit2, X, Calendar, Target, TrendingUp, AlertCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { useRouter } from 'next/navigation';
 
 interface SavingsBox {
   id: string;
@@ -37,11 +37,9 @@ interface SavingsBox {
 }
 
 export default function SavingsBoxesPage() {
-  const router = useRouter();
   const [month, setMonth] = useState(getCurrentMonth());
   const [loading, setLoading] = useState(true);
   const [savingsBoxes, setSavingsBoxes] = useState<SavingsBox[]>([]);
-  const [summary, setSummary] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingBox, setEditingBox] = useState<SavingsBox | null>(null);
   const [contributionDialogOpen, setContributionDialogOpen] = useState(false);
@@ -171,7 +169,7 @@ export default function SavingsBoxesPage() {
 
   return (
     <div className="flex h-screen flex-col">
-      <Topbar month={month} onMonthChange={setMonth} summary={summary} />
+      <Topbar month={month} onMonthChange={setMonth} />
 
       <div className="flex-1 overflow-auto p-6">
         <div className="space-y-6">
@@ -192,9 +190,7 @@ export default function SavingsBoxesPage() {
           </div>
 
           {loading ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">Chargement...</p>
-            </div>
+            <SavingsBoxesSkeleton />
           ) : savingsBoxes.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">

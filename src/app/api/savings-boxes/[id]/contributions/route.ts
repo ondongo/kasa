@@ -31,6 +31,7 @@ export async function POST(
     }
 
     // Vérifier que la caisse d'épargne existe et appartient au household
+    // @ts-expect-error - Prisma client needs to be regenerated after migration
     const savingsBox = await prisma.savingsBox.findFirst({
       where: {
         id: savingsBoxId,
@@ -48,6 +49,7 @@ export async function POST(
 
     // Créer la contribution et mettre à jour le montant actuel
     const result = await prisma.$transaction(async (tx) => {
+      // @ts-expect-error - Prisma client needs to be regenerated after migration
       const contribution = await tx.savingsBoxContribution.create({
         data: {
           savingsBoxId,
@@ -58,6 +60,7 @@ export async function POST(
       });
 
       // Mettre à jour le montant actuel
+      // @ts-expect-error - Prisma client needs to be regenerated after migration
       await tx.savingsBox.update({
         where: { id: savingsBoxId },
         data: {

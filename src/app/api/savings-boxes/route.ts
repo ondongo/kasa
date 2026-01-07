@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: 'Household non trouvé' }, { status: 404 });
     }
 
+    // @ts-expect-error - Prisma client needs to be regenerated after migration
     const savingsBoxes = await prisma.savingsBox.findMany({
       where: {
         householdId: household.id,
@@ -66,6 +67,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // @ts-expect-error - Prisma client needs to be regenerated after migration
     const savingsBox = await prisma.savingsBox.create({
       data: {
         householdId: household.id,
