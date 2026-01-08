@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,7 @@ import { Logo } from '@/components/layout/Logo';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
@@ -505,6 +505,30 @@ export default function LoginPage() {
         )}
       </Card>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
+        <div className="absolute inset-0">
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: 'url(/budget-background.png)' }}
+          />
+        </div>
+        <Card className="relative z-10 w-full max-w-md bg-card border-2 border-[#F2C086]/20">
+          <CardContent className="p-8">
+            <div className="flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <LoginPageContent />
+    </Suspense>
   );
 }
 
