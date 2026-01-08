@@ -126,22 +126,26 @@ export function formatMoneyWithConversion(
   sourceCurrency: string,
   targetCurrency: string
 ): string {
+  // Normaliser les devises (uppercase, et gérer null/undefined)
+  const normalizedSource = (sourceCurrency || targetCurrency || 'EUR').toUpperCase();
+  const normalizedTarget = (targetCurrency || sourceCurrency || 'EUR').toUpperCase();
+  
   // Convertir en unités dans la devise source
-  const sourceUnits = centsToUnits(cents, sourceCurrency);
+  const sourceUnits = centsToUnits(cents, normalizedSource);
   
   // Si même devise, pas de conversion
-  if (sourceCurrency === targetCurrency) {
-    return formatMoney(cents, targetCurrency);
+  if (normalizedSource === normalizedTarget) {
+    return formatMoney(cents, normalizedTarget);
   }
   
   // Convertir dans la devise cible
-  const targetUnits = convertCurrency(sourceUnits, sourceCurrency, targetCurrency);
+  const targetUnits = convertCurrency(sourceUnits, normalizedSource, normalizedTarget);
   
   // Reconvertir en "centimes" pour la devise cible
-  const targetCents = unitsToCents(targetUnits, targetCurrency);
+  const targetCents = unitsToCents(targetUnits, normalizedTarget);
   
   // Formater dans la devise cible
-  return formatMoney(targetCents, targetCurrency);
+  return formatMoney(targetCents, normalizedTarget);
 }
 
 /**
@@ -152,16 +156,20 @@ export function formatMoneyCompactWithConversion(
   sourceCurrency: string,
   targetCurrency: string
 ): string {
-  const sourceUnits = centsToUnits(cents, sourceCurrency);
+  // Normaliser les devises (uppercase, et gérer null/undefined)
+  const normalizedSource = (sourceCurrency || targetCurrency || 'EUR').toUpperCase();
+  const normalizedTarget = (targetCurrency || sourceCurrency || 'EUR').toUpperCase();
   
-  if (sourceCurrency === targetCurrency) {
-    return formatMoneyCompact(cents, targetCurrency);
+  const sourceUnits = centsToUnits(cents, normalizedSource);
+  
+  if (normalizedSource === normalizedTarget) {
+    return formatMoneyCompact(cents, normalizedTarget);
   }
   
-  const targetUnits = convertCurrency(sourceUnits, sourceCurrency, targetCurrency);
-  const targetCents = unitsToCents(targetUnits, targetCurrency);
+  const targetUnits = convertCurrency(sourceUnits, normalizedSource, normalizedTarget);
+  const targetCents = unitsToCents(targetUnits, normalizedTarget);
   
-  return formatMoneyCompact(targetCents, targetCurrency);
+  return formatMoneyCompact(targetCents, normalizedTarget);
 }
 
 /**

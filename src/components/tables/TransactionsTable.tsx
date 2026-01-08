@@ -75,8 +75,8 @@ export function TransactionsTable({ transactions, onEdit, onDelete, currency = '
               <TableCell>
                 {formatMoneyWithConversion(
                   transaction.amount,
-                  transaction.currency || 'EUR',
-                  currency
+                  transaction.currency || currency || 'EUR',
+                  currency || 'EUR'
                 )}
               </TableCell>
               <TableCell>
