@@ -501,18 +501,8 @@ export default function TontineDetailPage() {
                               variant="outline"
                               onClick={async () => {
                                 try {
-                                  const response = await fetch(
-                                    `/api/tontines/${tontine.id}/contributions/${contribution.id}`,
-                                    {
-                                      method: 'PATCH',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({ status: 'PAID' }),
-                                    }
-                                  );
-                                  if (!response.ok) {
-                                    const error = await response.json();
-                                    throw new Error(error.message || 'Erreur lors de la mise à jour');
-                                  }
+                                  const { markContributionPaid } = await import('@/lib/actions/tontines');
+                                  await markContributionPaid(tontine.id, contribution.id, 'PAID' as any);
                                   toast.success('Contribution marquée comme payée');
                                   loadTontine();
                                 } catch (error: any) {

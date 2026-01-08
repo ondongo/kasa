@@ -476,7 +476,7 @@ export async function markContributionPaid(tontineId: string, contributionId: st
       const updatedContribution = await tx.tontineContribution.update({
       where: { id: contributionId },
       data: {
-        status: status,
+        status: status as ContributionStatus,
         paidAt: status === 'PAID' ? new Date() : null,
       },
     });
