@@ -10,28 +10,28 @@ interface EmailOptions {
 }
 
 export async function sendEmail({ to, subject, html, from }: EmailOptions) {
-  // Utiliser Brevo par défaut
-  const apiKey = process.env.BREVO_API_KEY || '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';
+  // Utiliser Brevo uniquement si la clé API est configurée
+  const apiKey = process.env.BREVO_API_KEY;
   
-  if (apiKey) {
-    return sendWithBrevo({ to, subject, html, from, apiKey });
+  if (!apiKey) {
+    // En développement, log en console si la clé n'est pas configurée
+    console.warn('BREVO_API_KEY non configurée. Email non envoyé.');
+    console.log('Email (simulation):', {
+      to,
+      subject,
+      preview: html.substring(0, 100),
+    });
+    return { success: true, messageId: 'simulated' };
   }
   
-  // Sinon, log en console (développement)
-  console.log('Email (simulation):', {
-    to,
-    subject,
-    preview: html.substring(0, 100),
-  });
-  
-  return { success: true, messageId: 'simulated' };
+  return sendWithBrevo({ to, subject, html, from, apiKey });
 }
 
 async function sendWithBrevo({ to, subject, html, from, apiKey }: EmailOptions & { apiKey: string }) {
   try {
     // Parser le from si c'est au format "Name <email@domain.com>"
-    let senderName = 'no-reply';
-    let senderEmail = 'kozua2025@gmail.com';
+    let senderName = process.env.BREVO_SENDER_NAME || 'no-reply';
+    let senderEmail = process.env.BREVO_SENDER_EMAIL || 'noreply@kasa.app';
     
     if (from) {
       const match = from.match(/^(.+?)\s*<(.+?)>$/);
