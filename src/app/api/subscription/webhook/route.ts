@@ -1,21 +1,28 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// Endpoint IPN (Instant Payment Notification) pour PayDunya
+// PayDunya enverra une notification POST à cet endpoint après chaque paiement
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     
-    const { data } = body;
+    // PayDunya peut envoyer les données dans différents formats
+    // Format 1: { data: { token: ... } }
+    // Format 2: { token: ... } directement
+    const token = body.data?.token || body.token;
     
-    if (!data || !data.token) {
+    if (!token) {
+      console.error('Token manquant dans la notification IPN:', body);
       return NextResponse.json({ error: 'Token manquant' }, { status: 400 });
     }
 
     // Vérifier le statut du paiement avec PayDunya
-    const paydunyaResponse = await fetch(`https://app.paydunya.com/api/v1/checkout-invoice/confirm/${data.token}`, {
+    const paydunyaResponse = await fetch(`https://app.paydunya.com/api/v1/checkout-invoice/confirm/${token}`, {
       method: 'GET',
       headers: {
         'PAYDUNYA-MASTER-KEY': process.env.PAYDUNYA_MASTER_KEY || '',
+        'PAYDUNYA-PUBLIC-KEY': process.env.PAYDUNYA_PUBLIC_KEY || '',
         'PAYDUNYA-PRIVATE-KEY': process.env.PAYDUNYA_PRIVATE_KEY || '',
         'PAYDUNYA-TOKEN': process.env.PAYDUNYA_TOKEN || '',
       },
@@ -30,7 +37,7 @@ export async function POST(req: Request) {
 
     // Récupérer le paiement
     const payment = await prisma.payment.findUnique({
-      where: { paydunya_token: data.token },
+      where: { paydunya_token: token },
       include: { user: { include: { subscription: true } } },
     });
 
@@ -61,7 +68,7 @@ export async function POST(req: Request) {
             status: 'ACTIVE',
             endDate,
             lastPaymentDate: new Date(),
-            paydunya_token: data.token,
+            paydunya_token: token,
             paydunya_status: paydunyaData.status,
           },
         });
@@ -73,7 +80,7 @@ export async function POST(req: Request) {
             status: 'ACTIVE',
             endDate,
             lastPaymentDate: new Date(),
-            paydunya_token: data.token,
+            paydunya_token: token,
             paydunya_status: paydunyaData.status,
           },
         });

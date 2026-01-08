@@ -98,7 +98,17 @@ function LoginPageContent() {
       } else {
         // Appareil de confiance, connexion directe
         toast.success('Connexion réussie !');
-        window.location.href = '/dashboard';
+        
+        // Vérifier s'il y a une intention de paiement en attente
+        const pendingPayment = localStorage.getItem('pendingPayment');
+        const paymentParam = searchParams.get('payment');
+        
+        if (pendingPayment === 'true' || paymentParam === 'true') {
+          // Rediriger vers la page pricing pour reprendre le paiement
+          window.location.href = '/pricing?payment=true';
+        } else {
+          window.location.href = '/dashboard';
+        }
       }
     } catch (err) {
       toast.error('Une erreur est survenue');
@@ -187,8 +197,18 @@ function LoginPageContent() {
       
       // Attendre un peu pour que le token soit mis à jour, puis rediriger
       // Le middleware vérifiera le token mis à jour
+      
+      // Vérifier s'il y a une intention de paiement en attente
+      const pendingPayment = localStorage.getItem('pendingPayment');
+      const paymentParam = searchParams.get('payment');
+      
       setTimeout(() => {
-        window.location.href = '/dashboard';
+        if (pendingPayment === 'true' || paymentParam === 'true') {
+          // Rediriger vers la page pricing pour reprendre le paiement
+          window.location.href = '/pricing?payment=true';
+        } else {
+          window.location.href = '/dashboard';
+        }
       }, 500);
     } catch (err) {
       toast.error('Une erreur est survenue');

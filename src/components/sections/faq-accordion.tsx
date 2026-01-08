@@ -17,33 +17,33 @@ export default function FaqAccordion() {
   const faqItems: FAQItem[] = [
     {
       id: 1,
-      question: "Comment fonctionne Kasa ?",
+      question: "Qu'est-ce que Kasa et que peut-il faire ?",
       answer:
-        "Kasa est une plateforme complète qui vous permet de gérer votre budget en couple, participer à des tontines collectives et suivre vos investissements. Tout est synchronisé en temps réel et accessible depuis n'importe quel appareil.",
+        "Kasa est une plateforme complète de gestion budgétaire qui s'adapte à vos besoins : budgetisation individuelle, en couple ou en groupe. Vous pouvez créer des catégories personnalisables, suivre vos revenus et dépenses, gérer des enveloppes d'investissement et des boîtes d'épargne, organiser des tontines collectives, et attribuer vos transactions (Moi/Partenaire/Commun). Toutes vos données sont synchronisées en temps réel sur tous vos appareils avec des rapports et statistiques détaillés.",
     },
     {
       id: 2,
-      question: 'Les tontines, comment ça marche ?',
+      question: 'Comment fonctionnent les tontines sur Kasa ?',
       answer:
-        'Une tontine est un système d\'épargne collective où chaque membre contribue régulièrement. À tour de rôle, un membre reçoit la somme totale collectée. Kasa gère automatiquement les tours, les contributions et envoie des rappels.',
+        'Les tontines sur Kasa permettent d\'organiser des systèmes d\'épargne collective facilement. Créez une tontine, invitez des membres par code, définissez le montant et la fréquence des contributions. Kasa gère automatiquement les tours de rotation, suit les contributions de chaque membre, envoie des rappels, et vous permet de voir l\'historique complet de toutes vos tontines.',
     },
     {
       id: 3,
-      question: "Quelles devises sont supportées ?",
+      question: "Quelles fonctionnalités de gestion financière sont disponibles ?",
       answer:
-        "Kasa supporte l'Euro (EUR), le Dollar américain (USD) et le Franc CFA (XOF/XAF). Vous pouvez choisir votre devise préférée et le système convertit automatiquement les montants pour vous.",
+        "Kasa offre une gamme complète d'outils : catégories personnalisables pour organiser vos transactions, enveloppes d'investissement pour suivre vos placements, boîtes d'épargne pour vos objectifs financiers, transactions récurrentes pour automatiser vos entrées et sorties, rapports détaillés avec graphiques d'évolution, et attribution des transactions pour une gestion en couple ou en groupe. Tout cela avec support multi-devises (EUR, USD, FCFA) et conversion automatique.",
     },
     {
       id: 4,
-      question: 'Mes données sont-elles sécurisées ?',
+      question: 'Comment Kasa protège mes données financières ?',
       answer:
-        'Absolument ! Vos données sont chiffrées de bout en bout. Nous proposons l\'authentification à deux facteurs (2FA) et la gestion des appareils de confiance pour une sécurité maximale.',
+        'La sécurité est une priorité absolue. Vos données sont chiffrées de bout en bout, nous proposons l\'authentification à deux facteurs (2FA) par SMS, la gestion des appareils de confiance, et la vérification d\'email et de téléphone. Vous avez un contrôle total sur qui peut accéder à votre budget partagé, et toutes les synchronisations sont sécurisées.',
     },
     {
       id: 5,
-      question: "Quel est le prix de Kasa ?",
+      question: "Quel est le prix et puis-je essayer gratuitement ?",
       answer:
-        'Kasa coûte seulement 2000 FCFA par an (environ 3€ ou 3,32$). Vous bénéficiez de 30 jours d\'essai gratuit pour tester toutes les fonctionnalités sans engagement.',
+        'Kasa coûte seulement 2000 FCFA par an (environ 3€ ou 3,32$), ce qui représente un excellent rapport qualité-prix pour toutes les fonctionnalités offertes. Vous bénéficiez de 7 jours d\'essai gratuit pour explorer toutes les capacités de la plateforme : budgetisation, tontines, investissements, multi-devises, et bien plus, sans engagement ni carte bancaire requise.',
     },
   ];
 

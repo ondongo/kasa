@@ -8,10 +8,11 @@ const features = [
   {
     id: 'budget',
     icon: Users,
-    label: 'Budget en Couple',
+    label: 'Budgetisation',
     color: '#F2C086',
     description: 'Gérez vos finances à deux avec des catégories partagées et un suivi en temps réel.',
-    image: 'https://images.unsplash.com/photo-1605460375648-278bcbd579a6?w=800&h=600&fit=crop&q=80',
+    image: '/kaza-image/jeune-homme-noir-faisant-ses-finances_216356-640.avif',
+    benefits: ['Catégories personnalisables', 'Suivi en temps réel', 'Rapports détaillés'],
   },
   {
     id: 'tontines',
@@ -19,7 +20,8 @@ const features = [
     label: 'Tontines',
     color: '#F2C086',
     description: 'Organisez des tontines collectives, invitez des membres et suivez automatiquement les tours.',
-    image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&h=600&fit=crop&q=80',
+    image: '/kaza-image/mains-argent-collection-icones-plates-mains-isolees-couleur-tenant-methodes-paiement-portefeuilles-illustration-vectorielle_1284-80348.avif',
+    benefits: ['Invitation par code', 'Gestion automatique des tours', 'Historique complet'],
   },
   {
     id: 'investments',
@@ -27,7 +29,8 @@ const features = [
     label: 'Investissements',
     color: '#F2C086',
     description: 'Suivez l\'évolution de vos placements avec des enveloppes dédiées et des graphiques détaillés.',
-    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=600&fit=crop&q=80',
+    image: '/kaza-image/finance-l-argent-et-portrait-d-homme-noir-en-studio-pour-investissement-gagnant-riche-paiement-de-succès-profit-avec-un-tenant-272236081.webp',
+    benefits: ['Enveloppes dédiées', 'Graphiques d\'évolution', 'Suivi de performance'],
   },
   {
     id: 'currencies',
@@ -36,6 +39,7 @@ const features = [
     color: '#F2C086',
     description: 'EUR, USD, FCFA - Toutes vos transactions converties automatiquement.',
     image: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&h=600&fit=crop&q=80',
+    benefits: ['Conversion automatique', 'Taux en temps réel', 'Multi-devises supportées'],
   },
   {
     id: 'security',
@@ -43,7 +47,8 @@ const features = [
     label: 'Sécurité',
     color: '#F2C086',
     description: 'Authentification 2FA, chiffrement bout en bout, appareils de confiance.',
-    image: 'https://images.unsplash.com/photo-1551836022-deb4988cc6c0?w=800&h=600&fit=crop&q=80',
+    image: '/kaza-image/Image2.jpg',
+    benefits: ['Authentification 2FA', 'Chiffrement bout en bout', 'Appareils de confiance'],
   },
   {
     id: 'performance',
@@ -51,7 +56,8 @@ const features = [
     label: 'Rapidité',
     color: '#F2C086',
     description: 'Interface ultra-rapide avec synchronisation en temps réel sur tous vos appareils.',
-    image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop&q=80',
+    image: '/kaza-image/jeune-homme-noir-faisant-ses-finances_216356-640.avif',
+    benefits: ['Interface ultra-rapide', 'Synchronisation temps réel', 'Multi-appareils'],
   },
 ];
 
@@ -107,7 +113,7 @@ export function FeatureTabs() {
                   {activeFeature.description}
                 </p>
                 <div className="mt-8 space-y-3">
-                  {['Facile à utiliser', 'Synchronisation temps réel', 'Données sécurisées'].map(
+                  {activeFeature.benefits.map(
                     (benefit, index) => (
                       <div key={index} className="flex items-center gap-3">
                         <div className="w-5 h-5 rounded-full flex items-center justify-center bg-[#2A2520]">

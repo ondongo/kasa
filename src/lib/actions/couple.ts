@@ -87,9 +87,16 @@ export async function sendCoupleInvitation(receiverEmail: string) {
         invitationUrl: invitationLink,
       }),
     });
-  } catch (emailError) {
+  } catch (emailError: any) {
     console.error('Erreur lors de l\'envoi de l\'email:', emailError);
-    // On continue même si l'email ne part pas (l'invitation est créée)
+    // Si l'erreur est critique, on supprime l'invitation créée
+    if (emailError.message && emailError.message.includes('Erreur')) {
+      await prisma.coupleInvitation.delete({
+        where: { id: invitation.id },
+      });
+      throw new Error(`Erreur lors de l'envoi de l'email: ${emailError.message}`);
+    }
+    // Sinon, on continue même si l'email ne part pas (l'invitation est créée)
   }
 
   return invitation;
@@ -148,6 +155,21 @@ export async function acceptCoupleInvitation(token: string) {
 
   const receiver = await prisma.user.findUnique({
     where: { email: session.user.email },
+    include: {
+      memberships: {
+        include: {
+          household: {
+            include: {
+              memberships: true,
+              transactions: true,
+              categories: true,
+              investmentEnvelopes: true,
+              savingsBoxes: true,
+            },
+          },
+        },
+      },
+    },
   });
 
   if (!receiver) {
@@ -161,7 +183,11 @@ export async function acceptCoupleInvitation(token: string) {
         include: {
           memberships: {
             include: {
-              household: true,
+              household: {
+                include: {
+                  memberships: true,
+                },
+              },
             },
           },
         },
@@ -185,11 +211,17 @@ export async function acceptCoupleInvitation(token: string) {
     throw new Error('Cette invitation a expiré');
   }
 
-  // Trouver ou créer le household
+  // Vérifier si le receiver a déjà un partenaire
+  const receiverHousehold = receiver.memberships[0]?.household;
+  if (receiverHousehold && receiverHousehold.memberships.length >= 2) {
+    throw new Error('Vous avez déjà un partenaire lié');
+  }
+
+  // Trouver ou créer le household du sender
   let household = invitation.sender.memberships[0]?.household;
 
   if (!household) {
-    household = await prisma.household.create({
+    const newHousehold = await prisma.household.create({
       data: {
         name: `Foyer de ${invitation.sender.name || 'utilisateur'}`,
         memberships: {
@@ -199,17 +231,87 @@ export async function acceptCoupleInvitation(token: string) {
           },
         },
       },
+      include: {
+        memberships: true,
+      },
     });
+    household = newHousehold;
   }
 
-  // Ajouter le receiver au household
-  await prisma.membership.create({
-    data: {
-      userId: receiver.id,
-      householdId: household.id,
-      role: 'MEMBER',
+  // Si le receiver a déjà un household avec des données, migrer les données vers le nouveau household
+  if (receiverHousehold && receiverHousehold.id !== household.id) {
+    const receiverMembership = receiver.memberships.find(m => m.householdId === receiverHousehold.id);
+    
+    // Migrer les transactions
+    if (receiverHousehold.transactions.length > 0) {
+      await prisma.transaction.updateMany({
+        where: { householdId: receiverHousehold.id },
+        data: { householdId: household.id },
+      });
+    }
+
+    // Migrer les catégories
+    if (receiverHousehold.categories.length > 0) {
+      await prisma.category.updateMany({
+        where: { householdId: receiverHousehold.id },
+        data: { householdId: household.id },
+      });
+    }
+
+    // Migrer les enveloppes d'investissement
+    if (receiverHousehold.investmentEnvelopes.length > 0) {
+      await prisma.investmentEnvelope.updateMany({
+        where: { householdId: receiverHousehold.id },
+        data: { householdId: household.id },
+      });
+    }
+
+    // Migrer les tirelires
+    if (receiverHousehold.savingsBoxes.length > 0) {
+      await prisma.savingsBox.updateMany({
+        where: { householdId: receiverHousehold.id },
+        data: { householdId: household.id },
+      });
+    }
+
+    // Supprimer l'ancien membership du receiver
+    if (receiverMembership) {
+      await prisma.membership.delete({
+        where: { id: receiverMembership.id },
+      });
+    }
+
+    // Supprimer l'ancien household s'il est vide
+    const remainingMemberships = await prisma.membership.count({
+      where: { householdId: receiverHousehold.id },
+    });
+    
+    if (remainingMemberships === 0) {
+      await prisma.household.delete({
+        where: { id: receiverHousehold.id },
+      });
+    }
+  }
+
+  // Ajouter le receiver au household (ou mettre à jour s'il existe déjà)
+  const existingMembership = await prisma.membership.findUnique({
+    where: {
+      userId_householdId: {
+        userId: receiver.id,
+        householdId: household.id,
+      },
     },
   });
+
+  if (!existingMembership) {
+    await prisma.membership.create({
+      data: {
+        userId: receiver.id,
+        householdId: household.id,
+        role: 'MEMBER',
+      },
+    });
+  }
 
   // Mettre à jour l'invitation
   await prisma.coupleInvitation.update({

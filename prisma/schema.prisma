@@ -57,7 +57,7 @@ model UserPreferences {
 }
 
 enum SubscriptionStatus {
-  TRIAL // Essai gratuit (30 jours)
+  TRIAL // Essai gratuit (7 jours)
   ACTIVE // Abonnement actif
   EXPIRED // Abonnement expiré
   CANCELLED // Abonnement annulé

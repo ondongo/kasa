@@ -22,31 +22,11 @@ export default async function MerchantsPage() {
       {/* Navigation */}
       <nav className="border-b bg-card border-[#2A2520] sticky top-0 z-50">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center justify-center w-full">
             <Logo className="h-8 w-8" />
             <span className="text-xl font-bold text-white">Kasa</span>
           </Link>
-          
-          <div className="flex items-center gap-4">
-            {!session ? (
-              <>
-                <Link href="/login">
-                  <Button variant="ghost" className="text-gray-300">Login</Button>
-                </Link>
-                <Link href="/login">
-                  <Button className="bg-[#F2C086] hover:bg-[#F2C086]/90 text-black font-semibold rounded-full">
-                    Get Started
-                  </Button>
-                </Link>
-              </>
-            ) : (
-              <Link href="/dashboard">
-                <Button className="bg-[#F2C086] hover:bg-[#F2C086]/90 text-black font-semibold rounded-full">
-                  Dashboard
-                </Button>
-              </Link>
-            )}
-          </div>
+        
         </div>
       </nav>
 
@@ -55,22 +35,22 @@ export default async function MerchantsPage() {
         <div className="container mx-auto px-6 text-center relative z-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#2A2520] border border-[#F2C086] text-sm font-medium mb-8">
             <Store className="h-4 w-4 text-[#F2C086]" />
-            <span className="text-gray-300">Solution for merchants</span>
+            <span className="text-gray-300">Solution pour commerçants</span>
           </div>
 
           <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight max-w-4xl mx-auto text-white">
-            Simplified <span className="text-[#F2C086]">business</span> management
+            Gestion <span className="text-[#F2C086]">commerciale</span> simplifiée
           </h1>
           
           <p className="text-lg text-gray-300 max-w-2xl mx-auto mb-12">
-            Manage your revenue and inventory with ease. 
-            A complete solution for merchants.
+            Gérez vos revenus et votre inventaire en toute simplicité. 
+            Une solution complète pour les commerçants.
           </p>
 
           {/* Coming Soon Badge */}
           <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#2A2520] border-2 border-[#F2C086] mb-12">
             <Clock className="h-5 w-5 text-[#F2C086]" />
-            <span className="text-lg font-semibold text-[#F2C086]">Coming soon</span>
+            <span className="text-lg font-semibold text-[#F2C086]">Bientôt disponible</span>
           </div>
 
           {/* Features Preview */}
@@ -79,9 +59,9 @@ export default async function MerchantsPage() {
               <div className="w-12 h-12 rounded-full bg-[#2A2520] flex items-center justify-center mx-auto mb-4">
                 <TrendingUp className="h-6 w-6 text-[#F2C086]" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Revenue Management</h3>
+              <h3 className="text-xl font-bold text-white mb-2">Gestion des revenus</h3>
               <p className="text-sm text-gray-400">
-                Track all your income and sales in real-time
+                Suivez tous vos revenus et ventes en temps réel
               </p>
             </div>
 
@@ -89,9 +69,9 @@ export default async function MerchantsPage() {
               <div className="w-12 h-12 rounded-full bg-[#2A2520] flex items-center justify-center mx-auto mb-4">
                 <Package className="h-6 w-6 text-[#F2C086]" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Inventory Management</h3>
+              <h3 className="text-xl font-bold text-white mb-2">Gestion des stocks</h3>
               <p className="text-sm text-gray-400">
-                Control your inventory and products easily
+                Contrôlez facilement votre inventaire et vos produits
               </p>
             </div>
 
@@ -99,9 +79,9 @@ export default async function MerchantsPage() {
               <div className="w-12 h-12 rounded-full bg-[#2A2520] flex items-center justify-center mx-auto mb-4">
                 <Store className="h-6 w-6 text-[#F2C086]" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Dashboard</h3>
+              <h3 className="text-xl font-bold text-white mb-2">Tableau de bord</h3>
               <p className="text-sm text-gray-400">
-                Visualize your performance and statistics
+                Visualisez vos performances et statistiques
               </p>
             </div>
           </div>
@@ -109,13 +89,9 @@ export default async function MerchantsPage() {
           {/* CTA */}
           <div className="mt-12">
             <p className="text-gray-400 mb-6">
-              Be notified when this feature is released
+              Restez informé sur nos réseaux sociaux
             </p>
-            <Link href="/login">
-              <Button size="lg" className="bg-[#F2C086] hover:bg-[#F2C086]/90 text-black font-semibold h-12 px-6 text-base rounded-full">
-                Create an account
-              </Button>
-            </Link>
+           
           </div>
         </div>
       </section>
@@ -129,7 +105,7 @@ export default async function MerchantsPage() {
               <span className="text-xl font-bold text-white">Kasa</span>
             </Link>
             <p className="text-sm text-gray-400">
-              © 2026 Kasa. All rights reserved.
+              © 2026 Kasa. Tous droits réservés.
             </p>
           </div>
         </div>
@@ -137,6 +113,7 @@ export default async function MerchantsPage() {
     </div>
   );
 }
+
 
 
 

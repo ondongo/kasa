@@ -22,10 +22,10 @@ export async function GET() {
       return NextResponse.json({ error: 'Utilisateur non trouvé' }, { status: 404 });
     }
 
-    // Si pas d'abonnement, créer un essai gratuit de 30 jours
+    // Si pas d'abonnement, créer un essai gratuit de 7 jours
     if (!user.subscription) {
       const trialEndsAt = new Date();
-      trialEndsAt.setDate(trialEndsAt.getDate() + 30);
+      trialEndsAt.setDate(trialEndsAt.getDate() + 7);
 
       const subscription = await prisma.subscription.create({
         data: {

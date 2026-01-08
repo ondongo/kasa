@@ -81,7 +81,7 @@ export default function NotFound() {
                 <Link href="/pricing" className="text-sm text-[#F2C086] hover:underline">
                   Tarifs
                 </Link>
-                <Link href="/commerçants" className="text-sm text-[#F2C086] hover:underline">
+                <Link href="/merchants" className="text-sm text-[#F2C086] hover:underline">
                   Commerçants
                 </Link>
                 <a href="/#faq" className="text-sm text-[#F2C086] hover:underline">

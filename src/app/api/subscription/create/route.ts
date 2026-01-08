@@ -28,6 +28,7 @@ export async function POST() {
       headers: {
         'Content-Type': 'application/json',
         'PAYDUNYA-MASTER-KEY': process.env.PAYDUNYA_MASTER_KEY || '',
+        'PAYDUNYA-PUBLIC-KEY': process.env.PAYDUNYA_PUBLIC_KEY || '',
         'PAYDUNYA-PRIVATE-KEY': process.env.PAYDUNYA_PRIVATE_KEY || '',
         'PAYDUNYA-TOKEN': process.env.PAYDUNYA_TOKEN || '',
       },
@@ -59,7 +60,7 @@ export async function POST() {
     if (!paydunyaResponse.ok || paydunyaData.response_code !== '00') {
       console.error('Erreur PayDunya:', paydunyaData);
       return NextResponse.json(
-        { error: 'Erreur lors de la création du paiement PayDunya' },
+        { error: 'Erreur lors de la création du paiement PayDunya', details: paydunyaData },
         { status: 500 }
       );
     }

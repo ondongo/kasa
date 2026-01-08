@@ -9,12 +9,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { getCategories, createCategory, deleteCategory } from '@/lib/actions/categories';
 import { getEnvelopes, createEnvelope, deleteEnvelope } from '@/lib/actions/envelopes';
 import { getUserPreferences, updateUserPreferences, updateUserProfile, sendPhoneVerification } from '@/lib/actions/preferences';
 import { sendCoupleInvitation, getPartner } from '@/lib/actions/couple';
 import { getTrustedDevices, removeTrustedDevice } from '@/lib/actions/devices';
-import { User, Settings as SettingsIcon, Users, Shield, Folder, Plus, Trash2, Mail, Check, Smartphone, Monitor, Tablet } from 'lucide-react';
+import { User, Settings as SettingsIcon, Users, Shield, Folder, Plus, Trash2, Mail, Check, Smartphone, Monitor, Tablet, Loader2 } from 'lucide-react';
 import { SettingsSkeleton } from '@/components/skeletons/SettingsSkeleton';
 import { toast } from 'react-toastify';
 
@@ -62,6 +63,8 @@ function SettingsPageContent() {
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
   const [showVerificationInput, setShowVerificationInput] = useState(false);
+  const [isEditingPhone, setIsEditingPhone] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
 
   // Preferences
   const [currency, setCurrency] = useState('EUR');
@@ -94,6 +97,30 @@ function SettingsPageContent() {
 
   // Appareils de confiance
   const [trustedDevices, setTrustedDevices] = useState<any[]>([]);
+  
+  // Modal de vérification email
+  const [showEmailVerificationModal, setShowEmailVerificationModal] = useState(false);
+  const [emailVerificationStatus, setEmailVerificationStatus] = useState<'success' | 'error' | null>(null);
+
+  const loadUserProfile = async () => {
+    if (session?.user) {
+      setEmail(session.user.email || '');
+      try {
+        // Charger les données du profil depuis la BD
+        const response = await fetch('/api/user/profile');
+        if (response.ok) {
+          const userData = await response.json();
+          setFirstName(userData.firstName || '');
+          setLastName(userData.lastName || '');
+          setPhoneNumber(userData.phoneNumber || '');
+          setPhoneVerified(!!userData.phoneVerified);
+          setEmailVerified(!!userData.emailVerified);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement du profil:', error);
+      }
+    }
+  };
 
   useEffect(() => {
     // Vérifier si un onglet est spécifié dans l'URL
@@ -101,34 +128,24 @@ function SettingsPageContent() {
     if (tabParam && ['profile', 'preferences', 'couple', 'categories', 'security'].includes(tabParam)) {
       setActiveTab(tabParam as SettingsTab);
     }
-  }, [searchParams]);
+    
+    // Vérifier si l'email vient d'être vérifié
+    const emailVerified = searchParams.get('emailVerified');
+    if (emailVerified === 'true') {
+      setShowEmailVerificationModal(true);
+      setEmailVerificationStatus('success');
+      // Recharger les données du profil
+      loadUserProfile();
+      // Nettoyer l'URL
+      window.history.replaceState({}, '', '/settings?tab=profile');
+    }
+  }, [searchParams, session]);
 
   useEffect(() => {
     loadData();
-  }, []);
-
-  useEffect(() => {
-    async function loadUserProfile() {
-      if (session?.user) {
-        setEmail(session.user.email || '');
-        try {
-          // Charger les données du profil depuis la BD
-          const response = await fetch('/api/user/profile');
-          if (response.ok) {
-            const userData = await response.json();
-            setFirstName(userData.firstName || '');
-            setLastName(userData.lastName || '');
-            setPhoneNumber(userData.phoneNumber || '');
-            setPhoneVerified(!!userData.phoneVerified);
-            setEmailVerified(!!userData.emailVerified);
-          }
-        } catch (error) {
-          console.error('Erreur lors du chargement du profil:', error);
-        }
-      }
-    }
     loadUserProfile();
   }, [session]);
+
 
   async function loadData() {
     setLoading(true);
@@ -258,24 +275,78 @@ function SettingsPageContent() {
       return;
     }
     
+    setSendingOtp(true);
     try {
-      await sendPhoneVerification(phoneNumber);
+      const response = await fetch('/api/auth/otp/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: session?.user?.email,
+          phoneNumber: phoneNumber.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erreur lors de l\'envoi du code');
+      }
+
       setShowVerificationInput(true);
       toast.success('Code de vérification envoyé par SMS !');
     } catch (error: any) {
       toast.error(error.message || 'Erreur lors de l\'envoi du code');
+    } finally {
+      setSendingOtp(false);
     }
   };
 
-  const handleVerifyPhone = () => {
-    // TODO: Implémenter la vérification du code
-    if (verificationCode === '123456') { // Exemple de code
+  const handleVerifyPhone = async () => {
+    if (!verificationCode.trim()) {
+      toast.error('Veuillez entrer le code de vérification');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/auth/otp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: session?.user?.email,
+          phoneNumber: phoneNumber.trim(),
+          code: verificationCode.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Code incorrect');
+      }
+
+      // Mettre à jour le statut de vérification
       setPhoneVerified(true);
       setShowVerificationInput(false);
+      setIsEditingPhone(false);
+      setVerificationCode('');
+      
+      // Recharger les données du profil
+      const profileResponse = await fetch('/api/user/profile');
+      if (profileResponse.ok) {
+        const userData = await profileResponse.json();
+        setPhoneVerified(!!userData.phoneVerified);
+      }
+
       toast.success('Numéro de téléphone vérifié !');
-    } else {
-      toast.error('Code incorrect');
+    } catch (error: any) {
+      toast.error(error.message || 'Code incorrect');
     }
+  };
+
+  const handleEditPhone = () => {
+    setIsEditingPhone(true);
+    setShowVerificationInput(false);
+    setVerificationCode('');
   };
 
   const handleSavePreferences = async () => {
@@ -433,6 +504,33 @@ function SettingsPageContent() {
         </nav>
       </div>
 
+      {/* Modal de vérification email */}
+      <Dialog open={showEmailVerificationModal} onOpenChange={setShowEmailVerificationModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {emailVerificationStatus === 'success' ? 'Email vérifié !' : 'Erreur de vérification'}
+            </DialogTitle>
+            <DialogDescription>
+              {emailVerificationStatus === 'success' 
+                ? 'Votre adresse email a été vérifiée avec succès.'
+                : 'Une erreur est survenue lors de la vérification de votre email.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowEmailVerificationModal(false);
+                setEmailVerificationStatus(null);
+              }}
+              className="bg-[#F2C086] hover:bg-[#F2C086]/90 text-black"
+            >
+              Fermer
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Contenu principal */}
       <div className="flex-1 overflow-y-auto p-8">
         <div className="mx-auto max-w-3xl space-y-6">
@@ -481,12 +579,35 @@ function SettingsPageContent() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="votre@email.com"
+                        disabled
+                        className="bg-muted"
                       />
-                      {emailVerified && (
-                        <div className="flex items-center gap-2 rounded-md bg-green-500/10 px-3 text-green-600">
+                      {emailVerified ? (
+                        <div className="flex items-center gap-2 rounded-md bg-green-500/10 px-3 text-green-500 border border-green-500/20">
                           <Check className="h-4 w-4" />
                           <span className="text-xs font-medium">VÉRIFIÉ</span>
                         </div>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          onClick={async () => {
+                            try {
+                              const response = await fetch('/api/user/verify-email', {
+                                method: 'POST',
+                              });
+                              const data = await response.json();
+                              if (response.ok) {
+                                toast.success('Email de vérification envoyé !');
+                              } else {
+                                toast.error(data.error || 'Erreur lors de l\'envoi');
+                              }
+                            } catch (error) {
+                              toast.error('Erreur lors de l\'envoi de l\'email');
+                            }
+                          }}
+                        >
+                          Vérifier
+                        </Button>
                       )}
                     </div>
                   </div>
@@ -500,22 +621,62 @@ function SettingsPageContent() {
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
                         placeholder="+33 6 12 34 56 78"
+                        disabled={phoneVerified && !isEditingPhone}
+                        className={phoneVerified && !isEditingPhone ? 'bg-muted' : ''}
                       />
-                      {phoneVerified && phoneNumber ? (
-                        <div className="flex items-center gap-2 rounded-md bg-green-500/10 px-3 text-green-600">
-                          <Check className="h-4 w-4" />
-                          <span className="text-xs font-medium">VÉRIFIÉ</span>
-                        </div>
+                      {phoneVerified && phoneNumber && !isEditingPhone ? (
+                        <>
+                          <div className="flex items-center gap-2 rounded-md bg-green-500/10 px-3 text-green-500 border border-green-500/20">
+                            <Check className="h-4 w-4" />
+                            <span className="text-xs font-medium">VÉRIFIÉ</span>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={handleEditPhone}
+                            title="Modifier le numéro"
+                          >
+                            <SettingsIcon className="h-4 w-4" />
+                          </Button>
+                        </>
                       ) : phoneNumber ? (
                         <Button
                           variant="outline"
                           onClick={handleSendVerificationCode}
-                          disabled={!phoneNumber.trim()}
+                          disabled={!phoneNumber.trim() || sendingOtp}
                         >
-                          Resend
+                          {sendingOtp ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Envoi...
+                            </>
+                          ) : (
+                            'Envoyer OTP'
+                          )}
                         </Button>
                       ) : null}
                     </div>
+                    {showVerificationInput && (
+                      <div className="space-y-2 mt-2 p-4 rounded-lg bg-muted/50 border">
+                        <Label htmlFor="verificationCode">Code de vérification</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            id="verificationCode"
+                            type="text"
+                            value={verificationCode}
+                            onChange={(e) => setVerificationCode(e.target.value)}
+                            placeholder="Entrez le code reçu par SMS"
+                            maxLength={6}
+                          />
+                          <Button
+                            onClick={handleVerifyPhone}
+                            disabled={!verificationCode.trim()}
+                          >
+                            Vérifier
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <Button onClick={handleSaveProfile} className="w-full">
