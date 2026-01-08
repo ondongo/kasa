@@ -53,7 +53,7 @@ export function CreateTontineDialog({ open, onOpenChange, onSuccess }: CreateTon
         amount: unitsToCents(data.amount, data.currency),
         currency: data.currency,
         frequency: data.frequency as any,
-        maxMembers: data.maxMembers,
+        maxMembers: Number(data.maxMembers),
       });
 
       reset();

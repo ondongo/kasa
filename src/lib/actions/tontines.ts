@@ -158,7 +158,7 @@ export async function createTontine(data: {
       amount: Math.round(data.amount),
       currency: data.currency || 'XOF',
       frequency: (data.frequency || 'MONTHLY') as TontineFrequency,
-      maxMembers: data.maxMembers,
+      maxMembers: Number(data.maxMembers), // S'assurer que c'est un nombre
       inviteCode,
       creatorId: userId,
       status: 'DRAFT',
