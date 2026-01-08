@@ -70,10 +70,22 @@ export async function POST(req: Request) {
         });
       }
       
-      return NextResponse.json({ 
+      const response = NextResponse.json({ 
         success: true,
         message: 'Appareil vérifié et ajouté aux appareils de confiance'
       });
+      
+      // Ajouter un cookie temporaire pour indiquer que le phoneNumber vient d'être configuré
+      // Ce cookie permet au middleware de laisser passer l'accès au dashboard
+      response.cookies.set('phone-just-verified', 'true', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60, // 60 secondes
+        path: '/',
+      });
+      
+      return response;
     } catch (twilioError: any) {
       console.error('Erreur Twilio:', twilioError);
       return NextResponse.json(

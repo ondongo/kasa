@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getCategories, createCategory, deleteCategory } from '@/lib/actions/categories';
 import { getEnvelopes, createEnvelope, deleteEnvelope } from '@/lib/actions/envelopes';
-import { getUserPreferences, updateUserPreferences, updateUserProfile } from '@/lib/actions/preferences';
+import { getUserPreferences, updateUserPreferences, updateUserProfile, sendPhoneVerification } from '@/lib/actions/preferences';
 import { sendCoupleInvitation, getPartner } from '@/lib/actions/couple';
 import { getTrustedDevices, removeTrustedDevice } from '@/lib/actions/devices';
 import { User, Settings as SettingsIcon, Users, Shield, Folder, Plus, Trash2, Mail, Check, Smartphone, Monitor, Tablet } from 'lucide-react';
@@ -48,6 +49,7 @@ const themes = [
 
 export default function SettingsPage() {
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [loading, setLoading] = useState(true);
 
@@ -55,6 +57,7 @@ export default function SettingsPage() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [emailVerified, setEmailVerified] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
@@ -93,6 +96,14 @@ export default function SettingsPage() {
   const [trustedDevices, setTrustedDevices] = useState<any[]>([]);
 
   useEffect(() => {
+    // Vérifier si un onglet est spécifié dans l'URL
+    const tabParam = searchParams.get('tab');
+    if (tabParam && ['profile', 'preferences', 'couple', 'categories', 'security'].includes(tabParam)) {
+      setActiveTab(tabParam as SettingsTab);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     loadData();
   }, []);
 
@@ -109,6 +120,7 @@ export default function SettingsPage() {
             setLastName(userData.lastName || '');
             setPhoneNumber(userData.phoneNumber || '');
             setPhoneVerified(!!userData.phoneVerified);
+            setEmailVerified(!!userData.emailVerified);
           }
         } catch (error) {
           console.error('Erreur lors du chargement du profil:', error);
@@ -240,10 +252,19 @@ export default function SettingsPage() {
     }
   };
 
-  const handleSendVerificationCode = () => {
-    // TODO: Implémenter l'envoi du code de vérification
-    setShowVerificationInput(true);
-    toast.success('Code de vérification envoyé par SMS !');
+  const handleSendVerificationCode = async () => {
+    if (!phoneNumber.trim()) {
+      toast.error('Veuillez renseigner un numéro de téléphone');
+      return;
+    }
+    
+    try {
+      await sendPhoneVerification(phoneNumber);
+      setShowVerificationInput(true);
+      toast.success('Code de vérification envoyé par SMS !');
+    } catch (error: any) {
+      toast.error(error.message || 'Erreur lors de l\'envoi du code');
+    }
   };
 
   const handleVerifyPhone = () => {
@@ -461,10 +482,12 @@ export default function SettingsPage() {
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="votre@email.com"
                       />
-                      <div className="flex items-center gap-2 rounded-md bg-green-500/10 px-3 text-green-600">
-                        <Check className="h-4 w-4" />
-                        <span className="text-xs font-medium">VÉRIFIÉ</span>
-                      </div>
+                      {emailVerified && (
+                        <div className="flex items-center gap-2 rounded-md bg-green-500/10 px-3 text-green-600">
+                          <Check className="h-4 w-4" />
+                          <span className="text-xs font-medium">VÉRIFIÉ</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -478,39 +501,21 @@ export default function SettingsPage() {
                         onChange={(e) => setPhoneNumber(e.target.value)}
                         placeholder="+33 6 12 34 56 78"
                       />
-                      {phoneVerified ? (
+                      {phoneVerified && phoneNumber ? (
                         <div className="flex items-center gap-2 rounded-md bg-green-500/10 px-3 text-green-600">
                           <Check className="h-4 w-4" />
                           <span className="text-xs font-medium">VÉRIFIÉ</span>
                         </div>
-                      ) : (
+                      ) : phoneNumber ? (
                         <Button
                           variant="outline"
                           onClick={handleSendVerificationCode}
                           disabled={!phoneNumber.trim()}
                         >
-                          Vérifier
+                          Resend
                         </Button>
-                      )}
+                      ) : null}
                     </div>
-                    {showVerificationInput && !phoneVerified && (
-                      <div className="mt-2 space-y-2 rounded-lg border bg-muted/50 p-4">
-                        <Label htmlFor="verificationCode">Code de vérification</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            id="verificationCode"
-                            value={verificationCode}
-                            onChange={(e) => setVerificationCode(e.target.value)}
-                            placeholder="123456"
-                            maxLength={6}
-                          />
-                          <Button onClick={handleVerifyPhone}>Valider</Button>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Entrez le code reçu par SMS
-                        </p>
-                      </div>
-                    )}
                   </div>
 
                   <Button onClick={handleSaveProfile} className="w-full">

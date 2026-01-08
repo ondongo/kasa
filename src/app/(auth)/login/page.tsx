@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,6 +16,7 @@ import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,6 +30,17 @@ export default function LoginPage() {
   
   // Registration steps: 'form' | 'phone' | 'otp'
   const [registrationStep, setRegistrationStep] = useState<'form' | 'phone' | 'otp'>('form');
+  
+  // Vérifier les paramètres d'URL pour afficher l'étape phone si nécessaire
+  useEffect(() => {
+    const step = searchParams.get('step');
+    const emailParam = searchParams.get('email');
+    if (step === 'phone' && emailParam) {
+      setEmail(emailParam);
+      setIsLogin(true);
+      setRegistrationStep('phone');
+    }
+  }, [searchParams]);
   
   // OTP States
   const [requiresOTP, setRequiresOTP] = useState(false);
@@ -64,6 +76,16 @@ export default function LoginPage() {
       });
 
       const deviceCheck = await deviceCheckResponse.json();
+
+      if (deviceCheck.requiresPhoneNumber) {
+        // Pas de numéro de téléphone, afficher l'étape phone
+        // Le password est déjà dans le state, on le garde pour la reconnexion après OTP
+        setRegistrationStep('phone');
+        setLoading(false);
+        toast.info(deviceCheck.message || 'Veuillez renseigner votre numéro de téléphone');
+        // L'email est déjà défini, on reste sur la page avec l'étape phone
+        return;
+      }
 
       if (deviceCheck.requiresOTP) {
         // Appareil non reconnu, demander OTP
@@ -146,9 +168,28 @@ export default function LoginPage() {
           setLoading(false);
           return;
         }
+      } else if (password) {
+        // Si c'est une connexion existante avec password, se reconnecter pour régénérer le token
+        const result = await signIn('credentials', {
+          email,
+          password,
+          redirect: false,
+        });
+
+        if (result?.error) {
+          toast.error('Erreur lors de la mise à jour de la session');
+          setLoading(false);
+          return;
+        }
       }
+      // Si pas de password (arrivé depuis middleware), on laisse passer
+      // Le callback JWT récupérera le phoneNumber à jour à la prochaine requête
       
-      window.location.href = '/dashboard';
+      // Attendre un peu pour que le token soit mis à jour, puis rediriger
+      // Le middleware vérifiera le token mis à jour
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 500);
     } catch (err) {
       toast.error('Une erreur est survenue');
       setLoading(false);
@@ -223,7 +264,8 @@ export default function LoginPage() {
 
       // Passer à l'étape 3 : vérification OTP
       toast.success('Numéro enregistré ! Envoi du code de vérification...');
-      setIsRegistering(true);
+      // Si c'est une connexion (isLogin = true), on n'est pas en train de s'inscrire
+      setIsRegistering(!isLogin);
       setRegistrationStep('otp');
       setRequiresOTP(true);
       setPhoneNumber(registerPhoneNumber);

@@ -41,13 +41,16 @@ export async function POST(req: Request) {
       }, { status: 400 });
     }
 
-    // Si 2FA n'est pas activé et pas de numéro de téléphone, permettre la connexion
+    // Si 2FA n'est pas activé mais pas de numéro de téléphone, exiger la configuration
+    // L'utilisateur doit renseigner son numéro de téléphone dans le parcours d'inscription
     if (!twoFactorEnabled && !user.phoneNumber) {
       return NextResponse.json({
-        isTrusted: true,
+        isTrusted: false,
         requiresOTP: false,
-        message: '2FA non activé et aucun numéro de téléphone configuré',
-      });
+        requiresPhoneNumber: true,
+        redirectUrl: '/login?step=phone&email=' + encodeURIComponent(email),
+        message: 'Veuillez configurer votre numéro de téléphone pour continuer',
+      }, { status: 400 });
     }
 
     // Si 2FA est activé, toujours demander OTP si appareil non fiable

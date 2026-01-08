@@ -57,15 +57,29 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login',
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
       }
+      
+      // Récupérer le phoneNumber de l'utilisateur à chaque fois pour avoir la valeur à jour
+      if (token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { phoneNumber: true, email: true },
+        });
+        token.phoneNumber = dbUser?.phoneNumber || null;
+        if (dbUser?.email) {
+          token.email = dbUser.email;
+        }
+      }
+      
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
+        session.user.phoneNumber = token.phoneNumber as string | null;
       }
       return session;
     },

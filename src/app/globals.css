@@ -124,6 +124,13 @@
   }
 }
 
+/* Toaster avec la bonne police */
+.Toastify__toast-container,
+.Toastify__toast,
+.Toastify__toast-body {
+  font-family: var(--font-sans) !important;
+}
+
 @keyframes shimmer {
   0% {
     transform: translateX(-100%);

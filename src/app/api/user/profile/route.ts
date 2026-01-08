@@ -21,6 +21,7 @@ export async function GET() {
         lastName: true,
         phoneNumber: true,
         phoneVerified: true,
+        emailVerified: true,
         image: true,
       },
     });

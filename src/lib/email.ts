@@ -17,7 +17,7 @@ export async function sendEmail({ to, subject, html, from }: EmailOptions) {
   }
   
   // Sinon, log en console (développement)
-  console.log('📧 Email (simulation):', {
+  console.log('Email (simulation):', {
     to,
     subject,
     preview: html.substring(0, 100),
