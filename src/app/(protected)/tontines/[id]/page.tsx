@@ -212,21 +212,41 @@ export default function TontineDetailPage() {
 
   const loadTontine = async () => {
     try {
-      const response = await fetch(`/api/tontines/${params.id}`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          toast.error('Tontine introuvable');
-          router.push('/tontines');
-          return;
-        }
-        throw new Error('Erreur lors du chargement');
-      }
-      const data = await response.json();
-      setTontine(data);
+      const { getTontine } = await import('@/lib/actions/tontines');
+      const data = await getTontine(params.id as string);
+      
+      // Convertir les dates en strings pour la compatibilité avec le state
+      const formattedData = {
+        ...data,
+        createdAt: data.createdAt instanceof Date ? data.createdAt.toISOString() : data.createdAt,
+        startDate: data.startDate instanceof Date ? data.startDate.toISOString() : data.startDate,
+        members: (data.members || []).map((m: any) => ({
+          ...m,
+          joinedAt: m.joinedAt instanceof Date ? m.joinedAt.toISOString() : m.joinedAt,
+          status: String(m.status),
+        })),
+        rounds: (data.rounds || []).map((r: any) => ({
+          ...r,
+          dueDate: r.dueDate instanceof Date ? r.dueDate.toISOString() : r.dueDate,
+          paidAt: r.paidAt instanceof Date ? r.paidAt.toISOString() : r.paidAt,
+          contributions: (r.contributions || []).map((c: any) => ({
+            ...c,
+            paidAt: c.paidAt instanceof Date ? c.paidAt.toISOString() : c.paidAt,
+            status: String(c.status),
+          })),
+        })),
+      };
+      
+      setTontine(formattedData as any);
       // Initialiser les membres triés par turnOrder
-      setMembers([...data.members].sort((a, b) => (a.turnOrder || 0) - (b.turnOrder || 0)));
-    } catch (error) {
-      toast.error('Erreur lors du chargement de la tontine');
+      setMembers([...formattedData.members].sort((a: any, b: any) => (a.turnOrder || 0) - (b.turnOrder || 0)));
+    } catch (error: any) {
+      if (error.message?.includes('introuvable') || error.message?.includes('Accès refusé')) {
+        toast.error('Tontine introuvable');
+        router.push('/tontines');
+        return;
+      }
+      toast.error(error.message || 'Erreur lors du chargement de la tontine');
       console.error(error);
     } finally {
       setLoading(false);
@@ -247,13 +267,8 @@ export default function TontineDetailPage() {
     if (!tontine) return;
     setStarting(true);
     try {
-      const response = await fetch(`/api/tontines/${tontine.id}/start`, {
-        method: 'POST',
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Erreur lors du démarrage');
-      }
+      const { startTontine } = await import('@/lib/actions/tontines');
+      await startTontine(tontine.id);
       toast.success('Tontine démarrée avec succès !');
       loadTontine();
     } catch (error: any) {
@@ -270,13 +285,8 @@ export default function TontineDetailPage() {
       return;
     }
     try {
-      const response = await fetch(`/api/tontines/${tontine.id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Erreur lors de la suppression');
-      }
+      const { deleteTontine } = await import('@/lib/actions/tontines');
+      await deleteTontine(tontine.id);
       toast.success('Tontine supprimée avec succès');
       router.push('/tontines');
     } catch (error: any) {
@@ -322,16 +332,8 @@ export default function TontineDetailPage() {
     }));
 
     try {
-      const response = await fetch(`/api/tontines/${tontine.id}/members/order`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ memberOrders }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Erreur lors de la mise à jour');
-      }
+      const { updateMemberOrder } = await import('@/lib/actions/tontines');
+      await updateMemberOrder(tontine.id, memberOrders);
 
       toast.success('Ordre des membres mis à jour');
       loadTontine(); // Recharger pour avoir les données à jour
