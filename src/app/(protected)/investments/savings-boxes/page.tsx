@@ -113,7 +113,7 @@ export default function SavingsBoxesPage() {
 
   // Obtenir les contributions du mois sélectionné
   const getMonthContributions = (box: SavingsBox) => {
-    return box.contributions.filter(c => c.month === month);
+    return box.contributions.filter((c: any) => c.month === month);
   };
 
   // Calculer le pourcentage de progression
@@ -253,7 +253,7 @@ export default function SavingsBoxesPage() {
                           <p className="text-xs text-muted-foreground">Aucune contribution ce mois</p>
                         ) : (
                           <div className="space-y-1">
-                            {monthContributions.map((contribution) => (
+                            {monthContributions.map((contribution: any) => (
                               <div
                                 key={contribution.id}
                                 className="flex items-center justify-between text-xs p-2 rounded bg-muted/50"
