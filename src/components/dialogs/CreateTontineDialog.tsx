@@ -45,19 +45,16 @@ export function CreateTontineDialog({ open, onOpenChange, onSuccess }: CreateTon
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      const response = await fetch('/api/tontines', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...data,
-          amount: unitsToCents(data.amount, data.currency),
-        }),
+      const { createTontine } = await import('@/lib/actions/tontines');
+      
+      await createTontine({
+        name: data.name,
+        description: data.description,
+        amount: unitsToCents(data.amount, data.currency),
+        currency: data.currency,
+        frequency: data.frequency as any,
+        maxMembers: data.maxMembers,
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Erreur lors de la création');
-      }
 
       reset();
       onSuccess();

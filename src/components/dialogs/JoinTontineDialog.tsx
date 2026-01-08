@@ -26,16 +26,9 @@ export function JoinTontineDialog({ open, onOpenChange, onSuccess }: JoinTontine
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      const response = await fetch('/api/tontines/join', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Erreur lors de la tentative de rejoindre');
-      }
+      const { joinTontine } = await import('@/lib/actions/tontines');
+      
+      await joinTontine(data.inviteCode.toUpperCase().trim());
 
       reset();
       onSuccess();

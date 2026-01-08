@@ -85,12 +85,11 @@ export default function TontinesPage() {
 
   const loadTontines = async () => {
     try {
-      const response = await fetch('/api/tontines');
-      if (!response.ok) throw new Error('Erreur lors du chargement');
-      const data = await response.json();
+      const { getTontines } = await import('@/lib/actions/tontines');
+      const data = await getTontines();
       setTontines(data);
-    } catch (error) {
-      toast.error('Erreur lors du chargement des tontines');
+    } catch (error: any) {
+      toast.error(error.message || 'Erreur lors du chargement des tontines');
       console.error(error);
     } finally {
       setLoading(false);
